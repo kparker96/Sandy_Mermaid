@@ -1,0 +1,139 @@
+---
+title: "abaco temperature analysis"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(janitor)
+library(lubridate)
+```
+
+# Import data
+
+## Fowl Cay
+```{r}
+# May - October 2015
+fowl1 <- read_csv("FOWL_Cay_Nursery.csv", skip = 1) %>%
+  clean_names() %>%
+  mutate(time = mdy_hms(date_time_gmt_04_00),
+         site = "fowl_cay") %>%
+  select(time, site, temp_c) %>%
+  slice(100:n())   # get rid of some wonky data at the beginning
+range(fowl1$time)
+```
+
+## Mermaid Reef
+```{r}
+# May - October 2015
+mermaid1 <- read_csv("Data/Temperature/Mermaid's_Reef_download1.csv", skip = 1) %>%
+  clean_names() %>%
+  mutate(time = mdy_hms(date_time_gmt_04_00),
+         site = "mermaid_reef") %>%
+  select(time, site, temp_c)
+range(mermaid1$time)
+```
+
+```{r}
+# August 2018 - January 2019
+mermaid2 <- read_csv("Data/Temperature/Mermaid_Reef_8-2018_0.csv", skip = 1) %>%
+  clean_names() %>%
+  mutate(time = mdy_hms(date_time_gmt_04_00),
+         site = "mermaid_reef") %>%
+  select(time, site, temp_c) %>%
+  slice(1:(n()-20))    # get rid of some wonky data at the end
+range(mermaid2$time)
+```
+
+## Sandy Cay
+
+```{r}
+# May 2015 - October 2015
+sandy0 <- read_csv("Data/Temperature/Sandy_Cay_Reef_-_Backreef#8_0.csv", skip = 1) %>%
+  clean_names() %>%
+  mutate(time = mdy_hms(date_time_gmt_04_00),
+         site = "sandy_cay_reef",
+         temp_c = (temp_f - 32) * 5/9) %>%
+  select(time, site, temp_c) %>%
+  slice(100:n())   # get rid of some wonky data at the beginning
+range(sandy0$time)
+```
+
+```{r}
+# October 2015 - August 2016
+sandy1 <- read_csv("Data/Temperature/SANDY_Cay_Nursery.csv", skip = 1) %>%
+  clean_names() %>%
+  mutate(time = mdy_hms(date_time_gmt_04_00),
+         site = "sandy_cay_nursery") %>%
+  select(time, site, temp_c) %>%
+  slice(100:n())   # get rid of some wonky data at the beginning
+range(sandy1$time)
+```
+
+```{r}
+# November 2017 - July 2018
+sandy2 <- read_csv("Data/Temperature/Sandy_Cay_Reef_2.csv", skip = 1) %>%
+  clean_names() %>%
+  mutate(time = mdy_hms(date_time_gmt_05_00),
+         site = "sandy_cay_reef") %>%
+  select(time, site, temp_c) %>%
+  slice(1:(n()-120))    # get rid of some wonky data at the end
+range(sandy2$time)
+```
+
+# Merge datasets
+```{r}
+df <- bind_rows(mermaid1, mermaid2, sandy0, sandy1, sandy2) %>%
+  mutate(monthday = format(time, format = "%m-%d"))
+```
+
+# Plot temperature over time
+```{r}
+ggplot(df, aes(x = time, y = temp_c, color = site)) +
+  geom_line(alpha = 0.4) +
+  ylim(18, 35)
+```
+
+# Plot just overlapping time period (2015)
+```{r}
+df %>%
+  filter(time < "2015-10-15") %>%
+  ggplot(aes(x = time, y = temp_c, color = site)) +
+  geom_line(alpha = 0.3)
+ggplot(df, aes(x = monthday, y = temp_c, color = site)) +
+  geom_line(alpha = 0.3)
+```
+
+# Plot temperature over time just by month
+```{r}
+ggplot(df, aes(x = monthday, y = temp_c, color = site)) +
+  geom_line(alpha = 0.3)
+```
+
+
+# Boxplot
+```{r}
+ggplot(df, aes(x = site, y = temp_c)) +
+  geom_boxplot()
+```
+
+# Metrics
+```{r}
+mermaid1 %>%
+  summarise(max = max(temp_c, na.rm = TRUE))
+```
+
+
+# Linear model
+```{r}
+library(gamm4)
+```
+
+
+  
+```
+
