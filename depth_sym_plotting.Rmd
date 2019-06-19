@@ -176,6 +176,8 @@ sd_redo <- qpcr_good %>%
 
 # adding my new amazing code that does all the things and more 
 # Science is YAY!
+# als
+# Hello 
 
 ```
 
