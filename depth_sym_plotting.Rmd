@@ -1,0 +1,256 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+title: "Sym_temp"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#library(devtools)   # install.packages("devtools")
+library(steponeR) # install_github("jrcunning/steponeR")
+```
+
+
+```{r}
+# List Sandy Cay symbiodinium data files
+plates <- list.files(path = "Data/qPCR", pattern = ".txt", full.names = TRUE)
+plates
+# Read in data and calculate target ratios
+df <- steponeR(files = plates, 
+               delim = "\t", 
+               target.ratios = c("C.Orb", "D.Orb", "A.Orb", "B.Orb"), 
+               fluor.norm = list(C = 2.234, D = 1, Orb = 1, A = 1, B = 1),
+               copy.number = list(C = 20, D = 3, Orb = 1, A = 1, B = 1),
+               ploidy = list(C = 1, D = 1, Orb = 2, A = 1, B = 1),
+               extract = list(C = 0.813, D = 0.813, Orb = 0.982, A = 0.813, B = 0.813))
+qpcr <- df$result
+
+# View data
+head(qpcr)
+```
+
+```{r}
+library(tidyverse) # install.packages("tidyverse")
+```
+
+```{r}
+# Show samples that didn't work
+fails <- qpcr %>%
+  filter(is.na(C.Orb) & is.na(D.Orb) & is.na(A.Orb) & is.na(B.Orb))
+
+# Filter out samples that didn't amplify
+qpcr_good <- qpcr %>%
+  filter(!(is.na(C.Orb) & is.na(D.Orb) & is.na(A.Orb) & is.na(B.Orb)))
+
+# Convert ratios that are NaN to zero
+qpcr_good <- qpcr_good %>%
+  mutate(A.Orb = ifelse(is.na(A.Orb), 0, A.Orb),
+         B.Orb = ifelse(is.na(B.Orb), 0, B.Orb),
+         C.Orb = ifelse(is.na(C.Orb), 0, C.Orb),
+         D.Orb = ifelse(is.na(D.Orb), 0, D.Orb))
+
+
+# Assigning Dominant Symbiont based on Ratio
+qpcr_good <- qpcr_good %>%
+  mutate(dom_sym = case_when(B.Orb > C.Orb & B.Orb > D.Orb & B.Orb > A.Orb ~ "B",
+                             C.Orb > B.Orb & C.Orb > D.Orb & C.Orb > A.Orb ~ "C",
+                             D.Orb > B.Orb & D.Orb > C.Orb & D.Orb > A.Orb ~ "D",
+                             A.Orb > B.Orb & A.Orb > C.Orb & A.Orb > D.Orb ~ "A")) %>%
+  mutate(dom_sym = factor(dom_sym))
+```
+
+```{r}
+#visualizing Symbiont Communities 
+qpcr_good %>%
+  select(Sample.Name, A.Orb, B.Orb, C.Orb, D.Orb) %>%
+  gather(key = "sym", value = "value", -Sample.Name) %>%
+  ggplot(aes(x = Sample.Name, y = value, fill = sym)) +
+  geom_bar(stat = "identity", position = "fill")
+```
+
+```{r}
+# Taking dominant symbiont and sample name data from qpcr_good data frame 
+dom_sym_ratio <- qpcr_good %>%
+  select(Sample.Name, dom_sym)
+```
+
+```{r}
+#Uses gather function to restructure data frame from wide to long
+graph_good <- qpcr_good %>%
+  select(Sample.Name, A.Orb, B.Orb, C.Orb, D.Orb, dom_sym) %>%
+  gather(key = "sym", value = "value", -Sample.Name, -dom_sym)
+```
+
+```{r}
+#import depth data 
+#library(readr)
+sample_data <- readxl::read_xlsx("Data/Temperature/sample_data.xlsx")
+#View(depth)
+```
+
+```{r}
+# add depth to qpcr_good data frame 
+#depth_sym <- merge(graph_good, depth, by = "Sample.Name")
+depth_dom_sym <- sample_data %>%
+  select(tube_label, colony_depth_m, site) %>%
+  rename(Sample.Name = tube_label, depth = colony_depth_m) %>%
+  right_join(graph_good)
+```
+
+```{r}
+#Plotting Depth vs Ratio of Symbiodinium to host 
+ggplot(depth_dom_sym, aes(x = depth, y = log(value), col = sym)) + geom_line() +
+  xlim(2, 7) +
+  geom_point()
+```
+
+
+```{r}
+# Condensing dominant symbiont values to one per sample name 
+depth_dom_sym <- depth_dom_sym %>%
+  distinct(Sample.Name, depth, dom_sym, site)
+```
+
+
+```{r}
+#Form data table to separate by site 
+depth_int_ncol<- depth_dom_sym %>%
+  filter(depth != "NA") %>%
+  mutate(depth_int = cut(depth, breaks = 4)) %>%
+  group_by(depth_int, dom_sym, site) %>%
+  summarise(ncol = n()) 
+
+#Plot depth vs percent of sym dominance by site
+ggplot(depth_int_ncol, aes(x = depth_int, y = ncol, fill = dom_sym)) +
+  facet_wrap(~site) +
+  geom_bar(stat = "identity", position = "fill")
+  
+
+```
+
+```{r}
+#Visualising variability in depth at both sites
+depth_dom_sym %>%
+  filter(depth != "NA") %>% 
+  ggplot(aes(x = site, y = depth, fill = site)) +
+  geom_boxplot()
+```
+
+#Quality Control
+```{r}
+#Orb CT means at each site
+qpcr_good %>%
+  mutate(Site = str_sub(Sample.Name, start = 1, end = 2)) %>%
+  ggplot(aes(x = Site, y = Orb.CT.mean, fill = Site)) +
+  geom_boxplot()
+
+#Samples to Re-Extract
+qual_con <- qpcr_good %>%
+  select(Sample.Name, Orb.CT.mean) %>%
+  filter(Orb.CT.mean > 30.0000) 
+
+#Visualizing distribution of Orb Amplification by Site and Sample 
+qpcr_good %>%
+  mutate(Site = str_sub(Sample.Name, start = 1, end = 2)) %>%
+  ggplot(aes(x = Sample.Name, y = Orb.CT.mean, color = Site)) +
+  geom_point(size = 3) 
+
+#Visualizing sd of symbionts to determine cutoff
+sd_redo <- qpcr_good %>%
+  mutate(Site = str_sub(Sample.Name, start = 1, end = 2)) %>%
+  select(Sample.Name, A.CT.sd, B.CT.sd, C.CT.sd, D.CT.sd, Site) %>%
+  mutate(A.CT.sd = ifelse(is.na(A.CT.sd), 0, A.CT.sd),
+         B.CT.sd = ifelse(is.na(B.CT.sd), 0, B.CT.sd),
+         C.CT.sd = ifelse(is.na(C.CT.sd), 0, C.CT.sd),
+         D.CT.sd = ifelse(is.na(D.CT.sd), 0, D.CT.sd)) %>%
+  gather(key = sym_type, value = SD, -Sample.Name, -Site) %>%
+  filter(SD != 0 & SD > 1) %>%
+  ggplot(aes(x = Sample.Name, y = SD, color = Site)) +
+  geom_point(size = 3)
+
+# adding my new amazing code that does all the things and more 
+# Science is YAY!
+
+```
+
+```{r}
+#making a histogram of MR Orb.CT.Values
+histogram_MR <- qpcr_good %>%
+  mutate(site = str_sub(Sample.Name, start = 1, end = 2)) %>%
+  select(Sample.Name, Orb.CT.mean, site) %>%
+  filter(site != "SC")
+  
+
+hist(histogram_MR$Orb.CT.mean, 
+     main = "Orb.CT.mean of Samples at MR",
+     xlab = "Orb.CT.mean",
+     col = "green",
+     breaks = 10) 
+
+#making a histogram of Of SC Orb.CT.Values
+histogram_SC <- qpcr_good %>%
+  mutate(site = str_sub(Sample.Name, start = 1, end = 2)) %>%
+  select(Sample.Name, Orb.CT.mean, site) %>%
+  filter(site != "MR")
+  
+
+hist(histogram_SC$Orb.CT.mean, 
+     main = "Orb.CT.mean of Samples at SC",
+     xlab = "Orb.CT.mean",
+     col = "blue",
+     breaks = 10) 
+
+  
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+#Site vs dom_sym
+depth_dom_sym %>%
+  ggplot(aes(x ))
+```
+
+```{r}
+depth_int_ncol<- depth_dom_sym %>%
+  mutate(depth_int = cut(depth, breaks = 4)) %>%
+  group_by(depth_int, dom_sym, site) %>%
+  summarise(ncol = n()) 
+  
+ggplot(depth_int_ncol, aes(x = depth_int, y = ncol, fill = dom_sym)) +
+  facet_wrap(~site) +
+  geom_bar(stat = "identity")
+```
+
+
+
+
+
+
+
+
+
+
