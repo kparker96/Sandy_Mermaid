@@ -65,6 +65,41 @@ qpcr_good <- qpcr_good %>%
   mutate(dom_sym = factor(dom_sym))
 ```
 
+
+#HELP I CAN NOT FIGURE THIS OUT
+```{r}
+#removing "bad" data 
+qpcr_bad <- qpcr_good %>%
+  select(Sample.Name, Orb.CT.mean, A.CT.sd, B.CT.sd, C.CT.sd, D.CT.sd)
+```
+
+```{r}
+dupes <- qpcr_good %>%
+  count(Sample.Name) %>%
+  filter(n > 1)
+
+qpcr_dupes <- qpcr_good %>%
+  filter(Sample.Name %in% dupes$Sample.Name) %>%
+  arrange(Sample.Name)
+
+qpcr_dupes_f1 <- qpcr_dupes %>%
+  group_by(Sample.Name) %>%
+  filter(A.reps != 1, B.reps != 1, C.reps != 1, D.reps != 1, Orb.reps != 1) %>%
+  ungroup()
+
+# tyring to get standard deviation averages by row to choose "better" of multiple samples 
+qpcr_dupes_f2 <- qpcr_dupes_f1 %>%
+  mutate(sd_mean = mean(c(A.CT.sd, B.CT.sd, C.CT.sd, D.CT.sd, Orb.CT.sd), na.rm = TRUE))
+```
+
+
+
+
+
+
+
+
+
 ```{r}
 #visualizing Symbiont Communities 
 qpcr_good %>%
@@ -134,6 +169,7 @@ ggplot(depth_int_ncol, aes(x = depth_int, y = ncol, fill = dom_sym)) +
 
 ```
 
+
 ```{r}
 #Visualising variability in depth at both sites
 depth_dom_sym %>%
@@ -141,6 +177,69 @@ depth_dom_sym %>%
   ggplot(aes(x = site, y = depth, fill = site)) +
   geom_boxplot()
 ```
+
+```{r}
+# Prevalence of each symbiodinium at SC
+prev_sym <- sample_data %>%
+  rename(Sample.Name = tube_label, depth = colony_depth_m) %>%
+  mutate(Site = str_sub(Sample.Name, start = 1, end = 2)) %>%
+  select(Sample.Name, Site) %>%
+  merge(qpcr_good, by = "Sample.Name") %>%
+  select(Sample.Name, A.Orb, B.Orb, C.Orb, D.Orb, Site) %>%
+  filter(Site == "SC") %>%
+  select(Sample.Name, A.Orb, B.Orb, C.Orb, D.Orb) %>%
+  gather(key = "sym", value = "value", -Sample.Name) %>%
+  
+sym_yes <- prev_sym %>%
+  filter(value > 0)
+
+#Finding the percentage of each symbiont 
+sum_sym <- sym_yes %>%
+  count(vars = sym) %>%
+  mutate(prev = n/44 * 100)%>%
+  ggplot(aes(x = vars, y = prev, fill = vars)) +
+  geom_bar(stat = "identity", postion = "fill")
+
+```
+
+```{r}
+sym_combos <- qpcr_good %>%
+  mutate(symbiont = case_when(A.Orb > 0 & B.Orb > 0 & C.Orb == 0 & D.Orb == 0 ~ "AB",
+                             A.Orb > 0 & B.Orb == 0 & C.Orb > 0 ~ "AC",
+                             A.Orb & D.Orb ~ "AD",
+                             B.Orb & C.Orb ~ "BC",
+                             B.Orb & D.Orb ~ "BD",
+                             C.Orb & D.Orb ~ "CD",
+                             A.Orb & B.Orb & C.Orb & D.Orb ~ "ABCD",
+                             A.Orb & B.Orb & C.Orb & D.Orb == 0 ~ "ABC",
+                             A.Orb & B.Orb & D.Orb & C.Orb == 0 ~ "ABD",
+                             B.Orb & C.Orb & D.Orb ~ "BCD",
+                             A.Orb & C.Orb & D.Orb ~ "ACD",
+                             B.Orb & C.Orb & D.Orb ~ "BCD",
+                             A.Orb > 0 & B.Orb == 0 & C.Orb == 0 & D.Orb == 0 ~ "A",
+                             B.Orb > 0 & A.Orb == 0 & C.Orb == 0 & D.Orb == 0 ~ "B",
+                             C.Orb > 0 & A.Orb == 0 & B.Orb == 0 & D.Orb == 0 ~ "C",
+                             D.Orb > 0 & A.Orb == 0 & B.Orb == 0 & C.Orb == 0 ~ "D"))
+  mutate(symbiont = factor(symbiont)) %>%
+  select(Sample.Name, A.Orb, B.Orb, C.Orb, D.Orb, symbiont)
+
+
+
+                             
+    
+    
+    
+    
+    
+    
+    
+```
+
+
+
+
+
+
 
 #Quality Control
 ```{r}
@@ -153,7 +252,8 @@ qpcr_good %>%
 #Samples to Re-Extract
 qual_con <- qpcr_good %>%
   select(Sample.Name, Orb.CT.mean) %>%
-  filter(Orb.CT.mean > 30.0000) 
+  filter(Orb.CT.mean > 30.0000)
+
 
 #Visualizing distribution of Orb Amplification by Site and Sample 
 qpcr_good %>%
@@ -173,11 +273,6 @@ sd_redo <- qpcr_good %>%
   filter(SD != 0 & SD > 1) %>%
   ggplot(aes(x = Sample.Name, y = SD, color = Site)) +
   geom_point(size = 3)
-
-# adding my new amazing code that does all the things and more 
-# Science is YAY!
-# als
-# Hello 
 
 ```
 
