@@ -1,0 +1,65 @@
+* Block Type = 96-Well 0.2-mL Block
+* Calibration Background is expired  = No
+* Calibration Background performed on = 09-24-2018
+* Calibration Pure Dye ABY is expired = No
+* Calibration Pure Dye ABY performed on = 09-24-2018
+* Calibration Pure Dye FAM is expired = No
+* Calibration Pure Dye FAM performed on = 09-24-2018
+* Calibration Pure Dye JUN is expired = No
+* Calibration Pure Dye JUN performed on = 09-24-2018
+* Calibration Pure Dye NED is expired = No
+* Calibration Pure Dye NED performed on = 09-24-2018
+* Calibration Pure Dye ROX is expired = No
+* Calibration Pure Dye ROX performed on = 09-24-2018
+* Calibration Pure Dye SYBR is expired = No
+* Calibration Pure Dye SYBR performed on = 09-24-2018
+* Calibration Pure Dye TAMRA is expired = No
+* Calibration Pure Dye TAMRA performed on = 09-24-2018
+* Calibration Pure Dye VIC is expired = No
+* Calibration Pure Dye VIC performed on = 09-24-2018
+* Calibration ROI is expired  = No
+* Calibration ROI performed on = 09-24-2018
+* Calibration Uniformity is expired  = No
+* Calibration Uniformity performed on = 09-24-2018
+* Chemistry = SYBR_GREEN
+* Date Created = 2019-07-22 16:14:08 PM CDT
+* Experiment Barcode = NA
+* Experiment Comment = NA
+* Experiment File Name = C:\Users\Katie\Documents\Shedd Aquarium Coral Research Fellowship\Sandy_Mermaid\Data\troubleshoot_plates\20190702_KP_02.eds
+* Experiment Name = Power_UP_SYBR
+* Experiment Run End Time = 2019-07-02 17:09:06 PM CDT
+* Experiment Type = Standard Curve
+* Instrument Name =       272320406
+* Instrument Serial Number = 272320406
+* Instrument Type = QuantStudio™ 3 System
+* Passive Reference = ROX
+* Post-read Stage/Step = 
+* Pre-read Stage/Step = 
+* Quantification Cycle Method = Ct
+* Signal Smoothing On = true
+* Stage where Melt Analysis is performed = Stage3
+* Stage/ Cycle where Ct Analysis is performed = Stage2, Step2
+* User Name = NA
+
+[Results]
+Well	Well Position	Omit	Sample Name	Target Name	Task	Reporter	Quencher	CT	Ct Mean	Ct SD	Quantity	Quantity Mean	Quantity SD	Y-Intercept	R(superscript 2)	Slope	Efficiency	Automatic Ct Threshold	Ct Threshold	Automatic Baseline	Baseline Start	Baseline End	Amp Status	Comments	Cq Conf	CQCONF	EXPFAIL	NOAMP	THOLDFAIL	Tm1	Tm2	Tm3	Tm4
+5	A5	false	MR015	Orb	UNKNOWN	SYBR	None	34.424	34.503	0.112								true	0.204	true	3	28	Amp		0.965	N	N	N	N				
+10	A10	false	MR020	Orb	UNKNOWN	SYBR	None	35.050	35.321	0.382								true	0.204	true	3	30	Amp		0.959	N	N	N	N				
+17	B5	false	MR015	Orb	UNKNOWN	SYBR	None	34.583	34.503	0.112								true	0.204	true	3	28	Amp		0.976	N	N	N	N				
+22	B10	false	MR020	Orb	UNKNOWN	SYBR	None	35.591	35.321	0.382								true	0.204	true	3	30	Amp		0.977	N	N	N	N				
+29	C5	false	MR015	A	UNKNOWN	FAM	NFQ-MGB	Undetermined										false	0.010	true	3	39	No Amp		0.000	Y	Y	N	N				
+34	C10	false	MR020	A	UNKNOWN	FAM	NFQ-MGB	Undetermined										false	0.010	true	3	12	No Amp		0.000	Y	N	Y	N				
+41	D5	false	MR015	A	UNKNOWN	FAM	NFQ-MGB	Undetermined										false	0.010	true	3	39	No Amp		0.000	Y	Y	Y	N				
+46	D10	false	MR020	A	UNKNOWN	FAM	NFQ-MGB	Undetermined										false	0.010	true	3	39	No Amp		0.000	Y	Y	Y	N				
+53	E5	false	MR015	B	UNKNOWN	FAM	NFQ-MGB	Undetermined										true	0.200	true	3	39	Inconclusive		0.000	Y	Y	Y	Y				
+58	E10	false	MR020	B	UNKNOWN	FAM	NFQ-MGB	Undetermined										true	0.200	true	3	39	Amp		0.000	Y	Y	Y	Y				
+65	F5	false	MR015	B	UNKNOWN	FAM	NFQ-MGB	Undetermined										true	0.200	true	3	39	No Amp		0.000	Y	Y	Y	Y				
+70	F10	false	MR020	B	UNKNOWN	FAM	NFQ-MGB	Undetermined										true	0.200	true	3	39	No Amp		0.000	Y	Y	Y	Y				
+77	G5	false	MR015	C	UNKNOWN	VIC	NFQ-MGB	Undetermined										true	0.200	true	3	39	No Amp		0.000	Y	Y	Y	Y				
+77	G5	false	MR015	D	UNKNOWN	FAM	NFQ-MGB	28.005	28.048	0.060								true	0.293	true	3	22	Amp		0.978	N	N	N	N				
+82	G10	false	MR020	C	UNKNOWN	VIC	NFQ-MGB	Undetermined										true	0.200	true	3	39	No Amp		0.000	Y	Y	N	Y				
+82	G10	false	MR020	D	UNKNOWN	FAM	NFQ-MGB	26.706	26.678	0.040								true	0.293	true	3	21	Amp		0.983	N	N	N	N				
+89	H5	false	MR015	C	UNKNOWN	VIC	NFQ-MGB	Undetermined										true	0.200	true	3	39	No Amp		0.000	Y	Y	Y	Y				
+89	H5	false	MR015	D	UNKNOWN	FAM	NFQ-MGB	28.090	28.048	0.060								true	0.293	true	3	21	Amp		0.980	N	N	N	N				
+94	H10	false	MR020	C	UNKNOWN	VIC	NFQ-MGB	Undetermined										true	0.200	true	3	39	No Amp		0.000	Y	Y	N	Y				
+94	H10	false	MR020	D	UNKNOWN	FAM	NFQ-MGB	26.650	26.678	0.040								true	0.293	true	3	20	Amp		0.980	N	N	N	N				
