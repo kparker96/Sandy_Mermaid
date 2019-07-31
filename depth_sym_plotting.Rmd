@@ -87,7 +87,7 @@ qpcr_dupes <- qpcr_good %>%
 #filtering out data with only 1 technical replicate
 qpcr_dupes_f1 <- qpcr_dupes %>%
   group_by(Sample.Name) %>%
-  filter(A.reps != 1, B.reps != 1, C.reps != 1, D.reps != 1, Orb.reps != 1) %>%
+  filter(A.reps != 1, B.reps != 1, C.reps != 1, D.reps != 1) %>%
   ungroup()
 
 # tyring to get standard deviation averages by row to choose "better" of multiple samples 
@@ -97,11 +97,11 @@ qpcr_dupes_f2 <- qpcr_dupes_f1 %>%
   group_by(Sample.Name) %>%
   filter(avg_sd == avg_sd[which.min(avg_sd)])
 
-qpcr_better <- qpcr_good %>%
+qpcr_good <- qpcr_good %>%
   filter(!Sample.Name %in% dupes$Sample.Name) %>%
   bind_rows(qpcr_dupes_f2)
 
-qpcr_still_bad <- qpcr_better %>%
+qpcr_still_bad <- qpcr_good %>%
   filter(A.reps == 1| B.reps == 1| C.reps == 1| D.reps == 1| Orb.reps == 1) %>%
   select(Sample.Name, File.Name, A.reps, B.reps, C.reps, D.reps, Orb.reps)
   
@@ -249,39 +249,107 @@ sym_combos <- sample_data %>%
 sym_combos_graph <- sym_combos %>%
   select(Sample.Name, symbiont) %>%
   count(vars = symbiont) %>%
-  mutate(prev = n/74 * 100) %>%
+  mutate(prev = n) %>%
   select(vars, prev) %>%
   ggplot(aes(x = vars, y = prev, fill = vars)) +
   geom_col()
 ```
 
+#Principal COmponent Analysis of SC
 ```{r}
-# Network Analysis
+library(ggfortify)
+
+
+pca_data <- sym_combos %>%
+  select(A.Orb, B.Orb, C.Orb, D.Orb)
+
+pca <- prcomp(pca_data, scale = FALSE, center = FALSE)
+
+autoplot(pca, data = sym_combos, loadings = TRUE, loadings.label = TRUE)
+```
+
+
+```{r}
+# Network Analysis of symbionts at SC
+
 library(igraph) #install.packages("igraph")
 
-sym_network <- sym_combos %>%
-  select(Sample.Name, A.Orb, B.Orb, C.Orb, D.Orb, symbiont) 
+net_data_SC <- sym_combos %>%
+  mutate(total = A.Orb + B.Orb + C.Orb + D.Orb, 
+         A.prop = A.Orb/total,
+         B.prop = B.Orb/total,
+         C.prop = C.Orb/total,
+         D.prop = D.Orb/total) %>%
+  select(Sample.Name, A.prop, B.prop, C.prop, D.prop)
 
-edges <- sym_network %>%
+
+edges_SC <- net_data_SC %>%
+  gather(key = "Clade", value = "weight", -Sample.Name) %>%
+  filter(weight != 0)
+
+
+depth_SC <- depth_dom_sym %>%
+  select(Sample.Name, depth, site) %>%
+  filter(site == "sandy_cay") %>%
+  select(Sample.Name, depth) 
+
+verts_SC <- tibble(Sample.Name = c(net_data_SC$Sample.Name, colnames(net_data_SC)[-1])) %>%
+  left_join(depth_SC) %>%
+  rename(id = Sample.Name) %>%
+  mutate(lab = case_when(grepl("SC", id) ~ "",
+                         grepl(".prop", id) ~ str_sub(id, start = 1, end = 1)))
   
- 
-  
+net_SC <- graph_from_data_frame(edges_SC, directed = FALSE, vertices = verts_SC)
 
+set.seed(8)
 
+plot(net_SC, edge.curved = 0.1, edge.width = 10 * (E(net_SC)$weight)^2, vertex.label = V(net_SC)$lab, 
+     vertex.size = ifelse(grepl("SC", names(V(net_SC))), 10, 20),
+     vertex.color = ifelse(grepl("SC", names(V(net_SC))), 
+                           colorRampPalette(c("white", "black"))(100)[as.numeric(cut(V(net_SC)$depth_SC,breaks = 100))],
+                           rainbow(4)))
+```
 
+```{r}
+# Network Analysis of symbionts at SC
 
-  
-  
+library(igraph) #install.packages("igraph")
 
+net_data_MR <- qpcr_good %>%
+  select(Sample.Name, A.Orb, B.Orb, C.Orb, D.Orb) %>%
+  merge(depth_dom_sym) %>%
+  filter(site == "mermaid_reef") %>%
+  select(Sample.Name, D.Orb) %>%
+  mutate(D.prop = D.Orb/D.Orb) %>%
+  select(Sample.Name, D.prop)
 
+edges_MR <- net_data_MR %>%
+  gather(key = "Clade", value = "weight", -Sample.Name) %>%
+  filter(weight != 0)
 
+depth_MR <- depth_dom_sym %>%
+  select(Sample.Name, depth, site) %>%
+  filter(site == "mermaid_reef") %>%
+  select(Sample.Name, depth)
 
+verts_MR <- tibble(Sample.Name = c(net_data_MR$Sample.Name, colnames(net_data_MR)[-1])) %>%
+  left_join(depth_MR) %>%
+  rename(id = Sample.Name) %>%
+  mutate(lab = case_when(grepl("SC", id) ~ "",
+                         grepl(".prop", id) ~ str_sub(id, start = 1, end = 1)))
+
+net_MR <- graph_from_data_frame(edges_MR, directed = FALSE, vertices = verts_MR)
+
+plot(net_MR, edge.curved = 0.1, edge.width = 10 * (E(net_MR)$weight)^2, vertex.label = V(net_MR)$lab, 
+     vertex.size = ifelse(grepl("MR", names(V(net_MR))), 10, 20),
+     vertex.color = ifelse(grepl("MR", names(V(net_MR))), 
+                           colorRampPalette(c("white", "black"))(100)[as.numeric(cut(V(net_MR)$depth,breaks = 100))],
+                           rainbow(4)))
 
 
 
 
 ```
-
 
 
 
