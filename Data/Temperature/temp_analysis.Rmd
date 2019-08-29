@@ -15,18 +15,6 @@ library(lubridate)
 
 # Import data
 
-## Fowl Cay
-```{r}
-# May - October 2015
-fowl1 <- read_csv("FOWL_Cay_Nursery.csv", skip = 1) %>%
-  clean_names() %>%
-  mutate(time = mdy_hms(date_time_gmt_04_00),
-         site = "fowl_cay") %>%
-  select(time, site, temp_c) %>%
-  slice(100:n())   # get rid of some wonky data at the beginning
-range(fowl1$time)
-```
-
 ## Mermaid Reef
 ```{r}
 # May - October 2015
@@ -91,6 +79,7 @@ df <- bind_rows(mermaid1, mermaid2, sandy0, sandy1, sandy2) %>%
   mutate(monthday = format(time, format = "%m-%d"))
 ```
 
+
 # Plot temperature over time
 ```{r}
 ggplot(df, aes(x = time, y = temp_c, color = site)) +
@@ -100,12 +89,11 @@ ggplot(df, aes(x = time, y = temp_c, color = site)) +
 
 # Plot just overlapping time period (2015)
 ```{r}
-df %>%
-  filter(time < "2015-10-15") %>%
-  ggplot(aes(x = time, y = temp_c, color = site)) +
-  geom_line(alpha = 0.3)
-ggplot(df, aes(x = monthday, y = temp_c, color = site)) +
-  geom_line(alpha = 0.3)
+Q <- df %>%
+  filter(time < "2015-10-15") 
+  
+ggplot(Q, aes(x = time, y = temp_c, color = site)) +
+  geom_line(alpha = 0.3) 
 ```
 
 # Plot temperature over time just by month
@@ -114,26 +102,80 @@ ggplot(df, aes(x = monthday, y = temp_c, color = site)) +
   geom_line(alpha = 0.3)
 ```
 
-
-# Boxplot
+# Boxplot MR vs SC
 ```{r}
-ggplot(df, aes(x = site, y = temp_c)) +
+df %>%
+  filter(time < "2015-10-15") %>%
+  filter(site != "sandy_cay_nursery") %>%
+  select(site, temp_c) %>%
+  ggplot(aes(x = site, y = temp_c, fill = site)) +
   geom_boxplot()
 ```
 
-# Metrics
+#Density plot MR vs SC
 ```{r}
-mermaid1 %>%
-  summarise(max = max(temp_c, na.rm = TRUE))
-```
+library(ggplot2)
 
+temp_dat <- df %>%
+  filter(time < "2015-10-15") %>%
+  filter(site != "sandy_cay_nursery") %>%
+  select(site, temp_c) %>%
+  mutate(site = factor(site, levels = c("sandy_cay_reef", "mermaid_reef")))
+  
+
+
+
+ggplot(temp_dat, aes(x = temp_c, fill = site)) +
+  geom_density(alpha = 0.6, position = "identity") +
+  theme_classic() +
+  theme(axis.text.y = element_text(size = 20, color = "black", margin =margin(l = 20)),
+        axis.text.x = element_text(size = 20, color = "black"),
+        axis.title.y = element_text(size = 20),
+        axis.title.x = element_text(size = 20),
+        legend.text = element_text(size = 30), 
+        legend.position = c(0.25, 0.6)) +
+  xlab(expression("Temperature " ( degree*C))) +
+  ylab(label = "Density") +
+  scale_y_continuous(expand = c(0,0))  +
+  scale_fill_manual(name="",
+                         breaks=c("mermaid_reef", "sandy_cay_reef"),
+                         labels=c("Mermaid Reef", "Sandy Cay"), values=c("#1141C5", "#52ECD2"))
+
+ggsave(filename = "figures/temp_dens.png", width = 350, height = 175, units = "mm")
+  
+```
 
 # Linear model
 ```{r}
 library(gamm4)
 ```
 
+#Table of Metric Values 
+```{r}
+# Mean of all Temp Data
+library(gridExtra)
+library(grid)
 
+mean(df$temp_c, na.rm = TRUE)
+
+metrics<- df %>%
+  filter(time < "2015-10-15") %>%
+  filter(site != "sandy_cay_nursery") %>%
+  group_by(site) %>%
+  summarize(
+    mean = mean(temp_c, na.rm = TRUE),
+    min = min(temp_c, na.rm = TRUE),
+    max = max(temp_c, na.rm = TRUE),
+    median = median(temp_c, na.rm = TRUE))
+
+ 
   
+
+
+```
+
+
+```{r}
+grid.table(metrics) 
 ```
 
