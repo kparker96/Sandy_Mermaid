@@ -24,6 +24,7 @@ mermaid1 <- read_csv("Data/Temperature/Mermaid's_Reef_download1.csv", skip = 1) 
          site = "mermaid_reef") %>%
   select(time, site, temp_c)
 range(mermaid1$time)
+
 ```
 
 ```{r}
@@ -38,7 +39,6 @@ range(mermaid2$time)
 ```
 
 ## Sandy Cay
-
 ```{r}
 # May 2015 - October 2015
 sandy0 <- read_csv("Data/Temperature/Sandy_Cay_Reef_-_Backreef#8_0.csv", skip = 1) %>%
@@ -79,21 +79,171 @@ df <- bind_rows(mermaid1, mermaid2, sandy0, sandy1, sandy2) %>%
   mutate(monthday = format(time, format = "%m-%d"))
 ```
 
-
-# Plot temperature over time
+# Plot temperature over time from all temp data
 ```{r}
 ggplot(df, aes(x = time, y = temp_c, color = site)) +
   geom_line(alpha = 0.4) +
   ylim(18, 35)
 ```
 
-# Plot just overlapping time period (2015)
+# MR vs SC T Test
 ```{r}
-Q <- df %>%
-  filter(time < "2015-10-15") 
+t.test(temp_c ~ site, data = temp_overlap, paired = FALSE)
+
+```
+
+# Plot of temperature over overlapping time period for both sites (2015)
+```{r}
+temp_overlap <- df %>%
+  filter(time < "2015-10-15") %>%
+  filter(site != "sandy_cay_nursery")
   
-ggplot(Q, aes(x = time, y = temp_c, color = site)) +
-  geom_line(alpha = 0.3) 
+ggplot(temp_overlap, aes(x = time, y = temp_c, color = site)) +
+  geom_line(alpha = 0.7, size = 1.2) +
+  theme_bw() + 
+  theme(panel.grid = element_line(color = "white"),
+        axis.title.x = element_text(color = "transparent"),
+        axis.title.y = element_text(size = 25),
+        axis.text.x = element_text(size = 20, color = "black", margin = margin(t = 5)),
+        axis.text.y = element_text(size = 20, color = "black", margin = margin(l = 15)),
+        legend.position = c(0.85, 0.15),
+        legend.title = element_text(color = "transparent"),
+        legend.text = element_text(size = 25)) +
+  xlab(label = "Month") +
+  ylab(expression("Temperature " ( degree*C))) +
+  scale_color_manual(name = "Site", labels = c("Mermaid Reef", "Sandy Cay"), values = c("#F8766D","#00BFC4"))
+
+ggsave(filename = "figures/temp_time.png", width = 350, height = 175, units = "mm")
+
+```
+
+# Bleaching Threshold: Determining Average Monthly Means 
+```{r}
+# Converting monthday to just month 
+month_temp <- temp_overlap %>%
+  mutate(month = case_when(grepl("05-", monthday) ~ "May", (grepl("06-", monthday) ~ "Jun"), 
+                          (grepl("07-", monthday) ~ "Jul"),(grepl("08-", monthday) ~ "Aug"),
+                          (grepl("09-", monthday) ~ "Sep"),(grepl("10-", monthday) ~ "Oct"))) %>%
+  select(site, temp_c, month) 
+  
+# Sandy Cay Temperature Averages by Month
+SC_temp <- month_temp %>%
+  filter(site == "sandy_cay_reef")
+
+SC_month_temp <- aggregate(temp_c ~ month, SC_temp, mean)
+
+#Mermaid Reef Temperature Averages by Month
+MR_temp <- month_temp %>%
+  filter(site == "mermaid_reef")
+
+MR_month_temp <- aggregate(temp_c ~ month, MR_temp, mean)
+
+```
+
+# Bleaching Threshold Figure
+```{r}
+#Mermaid Reef Temp Over Time 
+MR <- temp_overlap %>%
+  filter(site == "mermaid_reef") %>%
+  ggplot(aes(x = time, y = temp_c)) +
+  geom_line(color = "#F8766D") +
+  geom_hline(yintercept = 31.96026, color = "red", size = 1.2) +
+  ylim(25, 33) +
+  theme_bw()
+
+# Sandy Cay Temp OVer Time 
+SC <- temp_overlap %>%
+  filter(site == "sandy_cay_reef") %>%
+  ggplot(aes(x = time, y = temp_c)) +
+  geom_line(color = "#00BFC4") +
+  geom_hline(yintercept = 31.10791, color = "red", size = 1.2) +
+  ylim(25, 33) +
+  theme_bw()
+  
+# Combine Temp Figures for each site 
+ggarrange(MR, SC) 
+  
+```
+
+#Distribution of Recorded Temperature Across Sites
+```{r}
+library(ggplot2)
+
+# List Temperature Recordings only during overlapping time period
+temp_dat <- df %>%
+  filter(time < "2015-10-15") %>%
+  filter(site != "sandy_cay_nursery") %>%
+  select(site, temp_c) %>%
+  mutate(site = factor(site, levels = c("sandy_cay_reef", "mermaid_reef")))
+  
+# Density Plot of Temperature Values Between Sites
+ggplot(temp_dat, aes(x = temp_c, fill = site)) +
+  geom_density(alpha = 0.6, position = "identity") +
+  theme_bw() +
+  theme(panel.grid = (element_line(color = "transparent")),
+    axis.text.y = element_text(size = 20, color = "black", margin =margin(l = 20)),
+        axis.text.x = element_text(size = 20, color = "black"),
+        axis.title.y = element_text(size = 20),
+        axis.title.x = element_text(size = 20),
+        legend.text = element_text(size = 30), 
+        legend.position = c(0.25, 0.6)) +
+  xlab(expression("Temperature " ( degree*C))) +
+  ylab(label = "Frequency") +
+  scale_y_continuous(expand = c(0,0))  +
+  scale_fill_manual(name="",
+                         breaks=c("mermaid_reef", "sandy_cay_reef"),
+                         labels=c("Mermaid Reef", "Sandy Cay"), values=c("#F8766D", "#00BFC4"))
+
+ggsave(filename = "figures/temp_dens.png", width = 350, height = 175, units = "mm")
+```
+
+#Combined Figure of Temperature over time and Density of Recorded temperature values
+```{r}
+library(ggpubr)
+
+density_plot <- ggplot(temp_dat, aes(x = temp_c, fill = site)) +
+  geom_density(alpha = 0.6, position = "identity") +
+  geom_vline(xintercept = 30.400, size = 1.2) +
+  theme_bw() +
+  coord_flip() +
+  theme(panel.grid = (element_line(color = "transparent")),
+    axis.text.y = element_text(size = 20, color = "black", margin =margin(l = 20)),
+        axis.text.x = element_text(size = 20, color = "black"),
+        axis.title.y = element_text(size = 1, color = "transparent"),
+        axis.title.x = element_text(size = 20),
+        legend.text = element_text(size = 20),
+    legend.box = "vertical",
+    legend.position = c(0.6,-0.26)) +
+  xlab(expression("Temperature " (degree*C))) +
+  ylab(label = "Frequency") +
+  scale_y_continuous(expand = c(0,0))  +
+  scale_fill_manual(name="",
+                         breaks=c("mermaid_reef", "sandy_cay_reef"),
+                         labels=c("Mermaid Reef", "Sandy Cay"), values=c( "#00BFC4", "#F8766D"))
+
+temp_time_overlap <- ggplot(temp_overlap, aes(x = time, y = temp_c, color = site)) +
+  geom_line(alpha = 0.7, size = 1.2) +
+  geom_hline(yintercept = 30.400, size = 1.2) +
+  theme_bw() + 
+  theme(panel.grid = element_line(color = "white"),
+        axis.title.x = element_text(color = "transparent"),
+        axis.title.y = element_text(size = 25),
+        axis.text.x = element_text(size = 20, color = "black", margin = margin(t = 5)),
+        axis.text.y = element_text(size = 20, color = "black", margin = margin(l = 15)),
+        legend.position = "none",
+        legend.title = element_text(color = "transparent"),
+        legend.text = element_text(size = 25)) +
+  xlab(label = "Month") +
+  ylab(expression("Temperature " ( degree*C))) +
+  scale_color_manual(name = "Site", labels = c("Mermaid Reef", "Sandy Cay"), values = c("#F8766D","#00BFC4"))
+
+ggarrange(temp_time_overlap, density_plot,
+                    labels = c("         A", "    B")) +
+  theme(plot.margin=unit(c(1,1,3,0.5),"cm"), 
+                         legend.position = "bottom",
+        legend.box = "vertical")
+
+ggsave(filename = "figures/temp_dens.png", width = 350, height = 175, units = "mm")
 ```
 
 # Plot temperature over time just by month
@@ -110,39 +260,6 @@ df %>%
   select(site, temp_c) %>%
   ggplot(aes(x = site, y = temp_c, fill = site)) +
   geom_boxplot()
-```
-
-#Density plot MR vs SC
-```{r}
-library(ggplot2)
-
-temp_dat <- df %>%
-  filter(time < "2015-10-15") %>%
-  filter(site != "sandy_cay_nursery") %>%
-  select(site, temp_c) %>%
-  mutate(site = factor(site, levels = c("sandy_cay_reef", "mermaid_reef")))
-  
-
-
-
-ggplot(temp_dat, aes(x = temp_c, fill = site)) +
-  geom_density(alpha = 0.6, position = "identity") +
-  theme_classic() +
-  theme(axis.text.y = element_text(size = 20, color = "black", margin =margin(l = 20)),
-        axis.text.x = element_text(size = 20, color = "black"),
-        axis.title.y = element_text(size = 20),
-        axis.title.x = element_text(size = 20),
-        legend.text = element_text(size = 30), 
-        legend.position = c(0.25, 0.6)) +
-  xlab(expression("Temperature " ( degree*C))) +
-  ylab(label = "Density") +
-  scale_y_continuous(expand = c(0,0))  +
-  scale_fill_manual(name="",
-                         breaks=c("mermaid_reef", "sandy_cay_reef"),
-                         labels=c("Mermaid Reef", "Sandy Cay"), values=c("#1141C5", "#52ECD2"))
-
-ggsave(filename = "figures/temp_dens.png", width = 350, height = 175, units = "mm")
-  
 ```
 
 # Linear model
@@ -167,15 +284,8 @@ metrics<- df %>%
     min = min(temp_c, na.rm = TRUE),
     max = max(temp_c, na.rm = TRUE),
     median = median(temp_c, na.rm = TRUE))
-
- 
-  
-
-
 ```
-
 
 ```{r}
 grid.table(metrics) 
 ```
-
