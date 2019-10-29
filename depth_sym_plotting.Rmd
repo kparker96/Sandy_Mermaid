@@ -583,14 +583,3 @@ hist(histogram_SC$Orb.CT.mean,
      breaks = 10) 
 ```
 
-# Map of Sites
-```{r}
-library(ggmap)
-
-register_google(key = "AIzaSyDi-MkqefO42fQM_CVVGSs7nuIhqQ_Fkt4")
-
-get_map(location = c(lon = -95.3632715, lat = 29.7632836))
-        
-
-```
-

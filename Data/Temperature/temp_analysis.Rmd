@@ -24,7 +24,6 @@ mermaid1 <- read_csv("Data/Temperature/Mermaid's_Reef_download1.csv", skip = 1) 
          site = "mermaid_reef") %>%
   select(time, site, temp_c)
 range(mermaid1$time)
-
 ```
 
 ```{r}
