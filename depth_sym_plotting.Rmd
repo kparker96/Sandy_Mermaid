@@ -239,7 +239,7 @@ position = position_dodge(width=0.5)
 
 
 
-#Symbiont Dominance VS Depth, MR and SC data grouped together
+#Symbiont Dominance VS Depth, Mermaid Reef and Sandy Cay data grouped together
 ```{r}
 grouped_depth <- depth_dom_sym %>%
   select(depth, dom_sym) %>%
