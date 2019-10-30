@@ -154,7 +154,10 @@ ggsave(filename = "figures/symiont_comp.png", width = 400, height = 300, units =
 ```{r}
 #library(readr)
 sample_data <- readxl::read_xlsx("Data/Temperature/sample_data.xlsx")
-#View(depth)
+
+
+depth <- sample_data %>%
+  select(Sample.Name = tube_label, depth = colony_depth_m)
 ```
 
 ```{r}
@@ -168,6 +171,22 @@ depth_dom_sym <- sample_data %>%
   select(tube_label, colony_depth_m, site) %>%
   rename(Sample.Name = tube_label, depth = colony_depth_m) %>%
   right_join(graph_good)
+```
+
+```{r}
+sym_commun_depth <- sym_commun %>%
+  right_join(depth) %>%
+  mutate(value = ifelse(is.na(value), 0, value))%>%
+  mutate(depth_int = cut(depth, breaks = 8)) %>%
+  mutate(newcol = paste(depth, Sample.Name))
+
+ggplot(sym_commun_depth, aes(x = newcol, y = value, fill = sym)) +
+  geom_bar(stat = "identity", position = "fill") +
+  facet_wrap(~ site, scales = "free", labeller = sites) +
+  scale_fill_manual(values = c( "#7CAE00", "#00BFC4", "#C77CFF", "#F8766D")) +
+  xlab("Depth (m)") +
+  theme(axis.text.x = element_text(angle = 90))
+  
 ```
 
 ```{r}
@@ -215,6 +234,60 @@ ggsave(filename = "figures/depth_symbionts.png", width = 380, height = 400, unit
 position = position_dodge(width=0.5)
 
 ```
+
+
+
+
+
+#Symbiont Dominance VS Depth, MR and SC data grouped together
+```{r}
+grouped_depth <- depth_dom_sym %>%
+  select(depth, dom_sym) %>%
+  mutate(depth_int = cut(depth, breaks = c(1,2,3,4,5,6,7,8))) %>%
+  group_by(depth_int, dom_sym) %>%
+  summarise(ncol = n()) %>%
+  mutate(n = sum(ncol), label = paste0("N =", n)) %>%
+  mutate(prop = ncol/n)
+
+# Trying to get regression lines across bar plot
+lines <- grouped_depth %>%
+  select(depth_int, dom_sym, prop)
+  
+
+ggplot(grouped_depth, aes(x = as.factor(depth_int), y = ncol, fill = dom_sym)) +
+  geom_bar(stat = "identity", position = "fill") +
+  geom_text(aes(x = as.factor(depth_int), y = 1.05, label = label), inherit.aes = FALSE) +
+  scale_fill_manual(values = c( "#7CAE00", "#00BFC4", "#C77CFF", "#F8766D")) +
+  
+
+```
+
+
+# Symbiont PRESENCE vs Depth, MR and SC data grouped together
+```{r}
+pres_sym_depth <- sample_data %>%
+  select(Sample.Name = tube_label, depth = colony_depth_m) %>%
+  right_join(sym_commun) %>%
+  mutate(value = ifelse(is.na(value), 0, value)) %>%
+  filter(value != 0)%>%
+  select(depth, sym) %>%
+  mutate(depth_int = cut(depth, breaks = c(1,2,3,4,5,6,7,8))) %>%
+  group_by(depth_int, sym) %>%
+  summarise(ncol = n()) %>%
+  mutate(n = sum(ncol), label = paste0("N =", n))
+
+ggplot(pres_sym_depth, aes(x = as.factor(depth_int), y = ncol, fill = sym)) +
+  geom_bar(stat = "identity", position = "fill") +
+  geom_text(aes(x = as.factor(depth_int), y = 1.05, label = label), inherit.aes = FALSE) +
+  scale_fill_manual(values = c( "#7CAE00", "#00BFC4", "#C77CFF", "#F8766D"))
+```
+
+
+
+
+
+
+
 
 # Analyzing Depth Between Sites
 ```{r}
