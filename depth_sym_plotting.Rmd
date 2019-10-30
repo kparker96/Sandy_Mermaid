@@ -14,8 +14,64 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(devtools)   # install.packages("devtools")
 library(steponeR) # install_github("jrcunning/steponeR")
+library(tidyverse) # install.packages("tidyverse")
+library(ggmap)  # devtools::install_github("dkahle/ggmap")
 ```
 
+# Map
+```{r}
+register_google(key = readLines("google_api_key"))
+
+mermaid <- c(lon = -77.05280, lat = 26.55358)
+sandy <- c(lon = -76.98903, lat = 26.39886)
+mid <- c(lon = -77.16, lat = 26.47)
+bah <- c(lon = -78, lat = 25.5)
+loc <- bind_rows(mermaid = mermaid, sandy = sandy, .id = "reef")
+
+map_bahamas <- get_map(location = bah, source = "google", maptype = "satellite", zoom = 7)
+map_abaco <- get_map(location = mid, source = "google", maptype = "satellite", zoom = 11)
+map_mermaid <- get_map(location = mermaid, source = "google", maptype = "satellite", zoom = 18)
+map_sandy <- get_map(location = sandy, source = "google", maptype = "satellite", zoom = 18)
+
+gm_bah <- ggmap(map_bahamas, extent = "device") +
+  geom_rect(aes(xmin = -77.25, xmax = -76.93, ymin = 26.3, ymax = 26.62), fill = NA, color = "white", lwd = 0.4) +
+  scale_x_continuous(limits = c(-81, -76), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(23.5, 27.5), expand = c(0, 0)) +
+  geom_rect(aes(xmin  = -80.99, xmax = -76, ymin = 23.51, ymax = 27.5), fill = NA, color = "white", lwd = 0.75) +
+  theme(axis.line = element_blank())
+
+gm_abaco <- ggmap(map_abaco, extent = "device") +
+  #scale_y_continuous(limits = c(-77.39, -76.9), expand = c(0, 0)) +
+  #geom_point(data = loc, aes(x = lon, y = lat), color = "white", pch = 22, cex = 4, lwd = 10) +
+  annotate("rect", xmin = -77.058, xmax = -77.048, ymin = 26.550, ymax = 26.558, 
+           col = "white", fill = NA, lwd = 0.4) +
+  annotate("rect", xmin = -76.994, xmax = -76.984, ymin = 26.395, ymax = 26.403, 
+           col = "white", fill = NA, lwd = 0.4) +
+  annotate("segment", x = -77.048, xend = -76.94, y = 26.558, yend = 26.665, colour = "white") +
+  annotate("segment", x = -77.048, xend = -76.94, y = 26.550, yend = 26.475, colour = "white") +
+  annotate("segment", x = -76.984, xend = -76.94, y = 26.403, yend = 26.465, colour = "white") +
+  annotate("segment", x = -76.984, xend = -76.94, y = 26.395, yend = 26.275, colour = "white") +    
+  inset(ggplotGrob(gm_bah), xmin = -77.4, xmax = -77.1, ymin = 26.3, ymax = 26.45) +
+  theme(axis.line = element_blank())
+
+gm_mermaid <- ggmap(map_mermaid, extent = "device") +
+  scale_y_continuous(limits = c(26.5525, 26.5545)) +
+  theme(axis.line = element_blank())
+
+gm_sandy <- ggmap(map_sandy, extent = "device") +
+  scale_y_continuous(limits = c(26.3980, 26.4000)) +
+  theme(axis.line = element_blank())
+
+zooms <- plot_grid(gm_mermaid, gm_sandy, ncol = 1, 
+                   labels = c("  b) Mermaid Reef", " c) Sandy Cay Reef"),
+                   label_colour = "white", hjust = 0)
+
+mapfig <- plot_grid(gm_abaco, zooms, ncol = 2, rel_widths = c(0.6, 0.4),
+                    labels = c("  a) Great Abaco", NA), label_colour = "white", hjust = 0)
+
+ggsave(filename = "Figures/map.png", plot = mapfig,
+       width = 174, height = 102, units = "mm")
+```
 
 
 #Importing Raw Data
@@ -37,9 +93,6 @@ qpcr <- df$result
 head(qpcr)
 ```
 
-```{r}
-library(tidyverse) # install.packages("tidyverse")
-```
 
 #Organizing Raw Data 
 ```{r}
