@@ -131,7 +131,7 @@ qpcr_good <- qpcr_good %>%
 ```{r}
 #Determing which samples have 2 replicates in the data set
 dupes <- qpcr_good %>%
-  count(Sample.Name) %>%
+  dplyr::count(Sample.Name) %>%
   filter(n > 1)
 
 #Gathering the full data for samples with 2 replicates
@@ -310,9 +310,30 @@ lines <- grouped_depth %>%
 ggplot(grouped_depth, aes(x = as.factor(depth_int), y = ncol, fill = dom_sym)) +
   geom_bar(stat = "identity", position = "fill") +
   geom_text(aes(x = as.factor(depth_int), y = 1.05, label = label), inherit.aes = FALSE) +
-  scale_fill_manual(values = c( "#7CAE00", "#00BFC4", "#C77CFF", "#F8766D")) +
+  scale_fill_manual(values = c( "#7CAE00", "#00BFC4", "#C77CFF", "#F8766D"))
   
 
+library(nnet)
+mod <- multinom(dom_sym ~ depth, data = depth_dom_sym)
+
+newdat <- data.frame(depth = seq(1, 8, 0.1))
+pred <- predict(mod, newdat, "probs")
+pred <- cbind(newdat, pred)
+pred <- gather(pred, sym, prob, -depth)
+
+
+ggplot(pred, aes(x = depth, y = prob, group = sym, color = sym)) +
+  geom_line()
+
+
+# overlay bars and model
+ggplot(grouped_depth, aes(x = as.factor(depth_int), y = ncol, fill = dom_sym)) +
+  geom_bar(stat = "identity", position = "fill", alpha = 0.6) +
+  geom_text(aes(x = as.factor(depth_int), y = 1.05, label = label), inherit.aes = FALSE) +
+  scale_fill_manual(values = c( "#7CAE00", "#00BFC4", "#C77CFF", "#F8766D")) +
+  scale_color_manual(values = c( "#7CAE00", "#00BFC4", "#C77CFF", "#F8766D")) +
+  geom_line(data = pred, inherit.aes = FALSE,
+            aes(x = depth - 0.5, y = prob, group = sym, color = sym))
 ```
 
 
