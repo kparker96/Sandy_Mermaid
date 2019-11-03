@@ -14,8 +14,10 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(devtools)   # install.packages("devtools")
 library(steponeR) # install_github("jrcunning/steponeR")
-library(tidyverse) # install.packages("tidyverse")
 library(ggmap)  # devtools::install_github("dkahle/ggmap")
+library(tidyverse) # install.packages("tidyverse")
+library(cowplot)
+library(grid)
 ```
 
 # Map
@@ -222,7 +224,7 @@ graph_good <- qpcr_good %>%
 # add depth to qpcr_good data frame 
 depth_dom_sym <- sample_data %>%
   select(tube_label, colony_depth_m, site) %>%
-  rename(Sample.Name = tube_label, depth = colony_depth_m) %>%
+  dplyr::rename(Sample.Name = tube_label, depth = colony_depth_m) %>%
   right_join(graph_good)
 ```
 
