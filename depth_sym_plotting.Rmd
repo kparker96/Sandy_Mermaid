@@ -304,11 +304,6 @@ grouped_depth <- depth_dom_sym %>%
   mutate(n = sum(ncol), label = paste0("N =", n)) %>%
   mutate(prop = ncol/n)
 
-# Trying to get regression lines across bar plot
-lines <- grouped_depth %>%
-  select(depth_int, dom_sym, prop)
-  
-
 ggplot(grouped_depth, aes(x = as.factor(depth_int), y = ncol, fill = dom_sym)) +
   geom_bar(stat = "identity", position = "fill") +
   geom_text(aes(x = as.factor(depth_int), y = 1.05, label = label), inherit.aes = FALSE) +
@@ -336,6 +331,31 @@ ggplot(grouped_depth, aes(x = as.factor(depth_int), y = ncol, fill = dom_sym)) +
   scale_color_manual(values = c( "#7CAE00", "#00BFC4", "#C77CFF", "#F8766D")) +
   geom_line(data = pred, inherit.aes = FALSE,
             aes(x = depth - 0.5, y = prob, group = sym, color = sym))
+
+
+# new version with separation between mermaid and sandy cay reef
+depth_dom_sym %>% group_by(site) %>% summarise(min = min(depth), max = max(depth))
+depth_dom_sym <- depth_dom_sym %>%
+  mutate(depth = case_when(site == "mermaid_reef" & depth == 2.6 ~ 2.59,
+                           site == "sandy_cay" & depth == 2.6 ~ 2.61,
+                           TRUE ~ depth))
+
+grouped_depth <- depth_dom_sym %>%
+  select(depth, dom_sym) %>%
+  #mutate(depth_int = cut(depth, breaks = c(1.1, seq(2.6, 7.6, 1)))) %>%
+  mutate(depth_int = cut(depth, breaks = c(1.1, seq(2.6, 7.6, 1.25)))) %>%
+  group_by(depth_int, dom_sym) %>%
+  summarise(ncol = n()) %>%
+  mutate(n = sum(ncol), label = paste0("N =", n)) %>%
+  mutate(prop = ncol/n)
+
+ggplot(grouped_depth, aes(x = as.factor(depth_int), y = ncol, fill = dom_sym)) +
+  geom_bar(stat = "identity", position = "fill") +
+  geom_text(aes(x = as.factor(depth_int), y = 1.05, label = label), inherit.aes = FALSE) +
+  scale_fill_manual(values = c( "#7CAE00", "#00BFC4", "#C77CFF", "#F8766D")) +
+  geom_vline(xintercept = 1.5, lty = 2) +
+  annotate("text", x = 1.7, y = 1.1, label = "MR       SC -->")
+  
 ```
 
 
