@@ -89,6 +89,9 @@ ggplot(df, aes(x = time, y = temp_c, color = site)) +
 ```{r}
 t.test(temp_c ~ site, data = temp_overlap, paired = FALSE)
 
+temp_overlap %>%
+  count(site)
+
 ```
 
 # Plot of temperature over overlapping time period for both sites (2015)
