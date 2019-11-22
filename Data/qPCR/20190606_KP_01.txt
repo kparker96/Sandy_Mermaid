@@ -22,7 +22,7 @@
 * Calibration Uniformity is expired  = No
 * Calibration Uniformity performed on = 09-24-2018
 * Chemistry = SYBR_GREEN
-* Date Created = 2019-07-23 12:22:23 PM CDT
+* Date Created = 2019-11-01 13:05:39 PM CDT
 * Experiment Barcode = NA
 * Experiment Comment = NA
 * Experiment File Name = C:\Users\Katie\Documents\Shedd Aquarium Coral Research Fellowship\Sandy_Mermaid\Data\qPCR\20190606_KP_01.eds
@@ -93,7 +93,6 @@ Well	Well Position	Omit	Sample Name	Target Name	Task	Reporter	Quencher	CT	Ct Mea
 48	D12	false	NTC	A	UNKNOWN	FAM	NFQ-MGB	Undetermined										false	0.010	true	3	39	No Amp		0.000	Y	Y	N	Y				
 49	E1	false	SC011	B	UNKNOWN	FAM	NFQ-MGB	26.647	26.412	0.332								false	0.010	true	3	26	Amp		0.805	N	N	N	N				
 50	E2	false	SC012	B	UNKNOWN	FAM	NFQ-MGB	Undetermined										false	0.010	true	3	39	No Amp		0.000	Y	Y	N	Y				
-51	E3	false	SC013	B	UNKNOWN	FAM	NFQ-MGB	25.455	25.164	0.412								false	0.010	true	3	24	Amp		0.717	Y	N	N	N				
 52	E4	false	SC014	B	UNKNOWN	FAM	NFQ-MGB	23.874	24.071	0.279								false	0.010	true	3	23	Amp		0.634	Y	N	N	N				
 53	E5	false	SC015	B	UNKNOWN	FAM	NFQ-MGB	26.069	26.381	0.441								false	0.010	true	3	24	Amp		0.669	Y	N	N	N				
 54	E6	false	SC016	B	UNKNOWN	FAM	NFQ-MGB	26.951	27.159	0.294								false	0.010	true	3	26	Amp		0.658	Y	N	N	N				
@@ -105,7 +104,6 @@ Well	Well Position	Omit	Sample Name	Target Name	Task	Reporter	Quencher	CT	Ct Mea
 60	E12	false	NTC	B	UNKNOWN	FAM	NFQ-MGB	Undetermined										false	0.010	true	3	39	No Amp		0.000	Y	Y	N	Y				
 61	F1	false	SC011	B	UNKNOWN	FAM	NFQ-MGB	26.178	26.412	0.332								false	0.010	true	3	25	Amp		0.649	Y	N	N	N				
 62	F2	false	SC012	B	UNKNOWN	FAM	NFQ-MGB	Undetermined										false	0.010	true	3	39	No Amp		0.000	Y	Y	N	Y				
-63	F3	false	SC013	B	UNKNOWN	FAM	NFQ-MGB	24.872	25.164	0.412								false	0.010	true	3	24	Amp		0.605	Y	N	N	N				
 64	F4	false	SC014	B	UNKNOWN	FAM	NFQ-MGB	24.268	24.071	0.279								false	0.010	true	3	23	Amp		0.726	Y	N	N	N				
 65	F5	false	SC015	B	UNKNOWN	FAM	NFQ-MGB	26.693	26.381	0.441								false	0.010	true	3	26	Amp		0.822	N	N	N	N				
 66	F6	false	SC016	B	UNKNOWN	FAM	NFQ-MGB	27.367	27.159	0.294								false	0.010	true	3	27	Amp		0.764	Y	N	N	N				

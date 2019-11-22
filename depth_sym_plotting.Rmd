@@ -199,7 +199,8 @@ ggplot(sym_commun, aes(x = Sample.Name, y = value, fill = sym)) +
         axis.text.y = element_text(size = 20, color = "black", margin = margin(l = 30)),
         panel.background = element_rect(color ="black"),
         legend.text = element_text(size = 20, face = "italic"),
-        legend.position = "bottom")
+        legend.position = "bottom") 
+       
 
 ggsave(filename = "figures/symiont_comp.png", width = 400, height = 300, units = "mm")
 
@@ -234,13 +235,27 @@ sym_commun_depth <- sym_commun %>%
   mutate(value = ifelse(is.na(value), 0, value))%>%
   mutate(depth_int = cut(depth, breaks = 8)) %>%
   mutate(newcol = paste(depth, Sample.Name))
+ 
+  
 
 ggplot(sym_commun_depth, aes(x = newcol, y = value, fill = sym)) +
   geom_bar(stat = "identity", position = "fill") +
-  facet_wrap(~ site, scales = "free", labeller = sites) +
+  facet_grid(~site, scales = "free", labeller = sites) +
+  ylab("Proportion of Symbiodiniaceae Genera") +
+  labs(fill = "") +
   scale_fill_manual(values = c( "#7CAE00", "#00BFC4", "#C77CFF", "#F8766D")) +
-  xlab("Depth (m)") +
-  theme(axis.text.x = element_text(angle = 90))
+  scale_y_continuous(expand = c(0, 0)) +
+  theme_classic() +
+  theme(axis.title.x = element_text(color = "transparent"),
+        axis.title.y = element_text(size = 35),
+        axis.text.x = element_text(size = 30, color = "transparent", margin = margin(t = -20)),
+        axis.text.y = element_text(size = 30, color = "black", margin = margin(l = 30), angle = 90),
+        panel.background = element_rect(color ="black"),
+        legend.text = element_text(size = 30, face = "italic"),
+        strip.text.x = element_text(size = 40),
+        legend.position = "bottom")
+
+ggsave(filename = "figures/symiont_comp.png", width = 400, height = 300, units = "mm")
   
 ```
 
@@ -290,6 +305,34 @@ position = position_dodge(width=0.5)
 
 ```
 
+#Symbiont Dominance VS Depth, Mermaid Reef and Sandy Cay data grouped together WITHOUT REGRESSION LINES
+```{r}
+grouped_depth <- depth_dom_sym %>%
+  select(depth, dom_sym) %>%
+  mutate(depth_int = cut(depth, breaks = c(1,2,3,4,5,6,7,8))) %>%
+  group_by(depth_int, dom_sym) %>%
+  summarise(ncol = n()) %>%
+  mutate(n = sum(ncol), label = paste0("N =", n)) %>%
+  mutate(prop = ncol/n)
+
+ggplot(grouped_depth, aes(x = as.factor(depth_int), y = ncol, fill = dom_sym)) +
+  geom_bar(stat = "identity", position = "fill") +
+  geom_text(aes(x = as.factor(depth_int), y = 1.05, label = label), inherit.aes = FALSE, size = 16) +
+  scale_fill_manual(values = c( "#7CAE00", "#00BFC4", "#C77CFF", "#F8766D")) +
+  xlab("Depth (m)") +
+  ylab("Proportion of Dominant Symbiodiniaceae Genera") +
+  theme_bw() +
+  theme(axis.text.y = element_text(size = 35, color = "black", margin = margin(l = 40)),
+        axis.text.x = element_text(size = 35, color = "black", margin = margin(b = 20)),
+        axis.title = element_text(size = 33),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 35, face = "italic"),
+        legend.position = "bottom",
+        legend.spacing.x = unit(0.5, 'cm'),
+        panel.grid = element_line(color = "transparent"))
+
+ggsave(filename = "figures/grouped_depth.png", width = 400, height = 300, units = "mm")
+```
 
 
 
@@ -313,6 +356,8 @@ ggplot(grouped_depth, aes(x = as.factor(depth_int), y = ncol, fill = dom_sym)) +
   geom_bar(stat = "identity", position = "fill") +
   geom_text(aes(x = as.factor(depth_int), y = 1.05, label = label), inherit.aes = FALSE) +
   scale_fill_manual(values = c( "#7CAE00", "#00BFC4", "#C77CFF", "#F8766D"))
+
+ggsave(filename = "figures/grouped_depth.png", width = 380, height = 400, units = "mm")
   
 
 library(nnet)
@@ -326,7 +371,6 @@ pred <- gather(pred, sym, prob, -depth)
 
 ggplot(pred, aes(x = depth, y = prob, group = sym, color = sym)) +
   geom_line()
-
 
 # overlay bars and model
 ggplot(grouped_depth, aes(x = as.factor(depth_int), y = ncol, fill = dom_sym)) +
@@ -356,12 +400,9 @@ ggplot(pres_sym_depth, aes(x = as.factor(depth_int), y = ncol, fill = sym)) +
   geom_bar(stat = "identity", position = "fill") +
   geom_text(aes(x = as.factor(depth_int), y = 1.05, label = label), inherit.aes = FALSE) +
   scale_fill_manual(values = c( "#7CAE00", "#00BFC4", "#C77CFF", "#F8766D"))
+
+
 ```
-
-
-
-
-
 
 
 
@@ -578,7 +619,7 @@ net_SC <- graph_from_data_frame(edges_SC, directed = FALSE, vertices = verts_SC)
   
   png("Figures/SC_Network.png", width = 300, height = 300, units = "mm", res = 600)
   
-  set.seed(40) 
+  set.seed(85) #57, 63, 66, 85
   
   plot(net_SC, edge.curved = 0, 
        edge.width = 15 * (E(net_SC)$weight)^0.5, 

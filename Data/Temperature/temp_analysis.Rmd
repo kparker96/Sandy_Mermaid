@@ -202,45 +202,44 @@ library(ggpubr)
 
 density_plot <- ggplot(temp_dat, aes(x = temp_c, fill = site)) +
   geom_density(alpha = 0.6, position = "identity") +
-  geom_vline(xintercept = 30.400, size = 1.2) +
   theme_bw() +
   coord_flip() +
   theme(panel.grid = (element_line(color = "transparent")),
-    axis.text.y = element_text(size = 20, color = "black", margin =margin(l = 20)),
-        axis.text.x = element_text(size = 20, color = "black"),
+    axis.text.y = element_text(size = 18, color = "black", margin =margin(l = 20)),
+        axis.text.x = element_text(size = 18, color = "black"),
         axis.title.y = element_text(size = 1, color = "transparent"),
-        axis.title.x = element_text(size = 20),
-        legend.text = element_text(size = 20),
-    legend.box = "vertical",
-    legend.position = c(0.6,-0.26)) +
+        axis.title.x = element_text(size = 18),
+        legend.text = element_text(size = 18),
+    legend.direction = "horizontal",
+    legend.position = c(-0.1,-0.16),
+    legend.spacing.x = unit(0.5, 'cm')) +
   xlab(expression("Temperature " (degree*C))) +
   ylab(label = "Frequency") +
+  guides(colour = guide_legend(nrow = 1)) +
   scale_y_continuous(expand = c(0,0))  +
   scale_fill_manual(name="",
                          breaks=c("mermaid_reef", "sandy_cay_reef"),
-                         labels=c("Mermaid Reef", "Sandy Cay"), values=c( "#00BFC4", "#F8766D"))
+                         labels=c("Mermaid Reef", "Sandy Cay Reef"), values=c( "#00BFC4", "#F8766D"))
 
 temp_time_overlap <- ggplot(temp_overlap, aes(x = time, y = temp_c, color = site)) +
   geom_line(alpha = 0.7, size = 1.2) +
-  geom_hline(yintercept = 30.400, size = 1.2) +
   theme_bw() + 
   theme(panel.grid = element_line(color = "white"),
         axis.title.x = element_text(color = "transparent"),
-        axis.title.y = element_text(size = 25),
-        axis.text.x = element_text(size = 20, color = "black", margin = margin(t = 5)),
-        axis.text.y = element_text(size = 20, color = "black", margin = margin(l = 15)),
+        axis.title.y = element_text(size = 18),
+        axis.text.x = element_text(size = 18, color = "black", margin = margin(t = 5)),
+        axis.text.y = element_text(size = 18, color = "black", margin = margin(l = 15)),
         legend.position = "none",
-        legend.title = element_text(color = "transparent"),
         legend.text = element_text(size = 25)) +
   xlab(label = "Month") +
   ylab(expression("Temperature " ( degree*C))) +
   scale_color_manual(name = "Site", labels = c("Mermaid Reef", "Sandy Cay"), values = c("#F8766D","#00BFC4"))
 
 ggarrange(temp_time_overlap, density_plot,
-                    labels = c("         A", "    B")) +
+                    labels = c("    a", "   b"),
+          font.label = list(size = 21)) +
   theme(plot.margin=unit(c(1,1,3,0.5),"cm"), 
-                         legend.position = "bottom",
-        legend.box = "vertical")
+                         legend.position = "bottom")
 
 ggsave(filename = "figures/temp_dens.png", width = 350, height = 175, units = "mm")
 ```
