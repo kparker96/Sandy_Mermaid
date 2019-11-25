@@ -191,7 +191,7 @@ ggplot(sym_commun, aes(x = Sample.Name, y = value, fill = sym)) +
   facet_grid(~site, scales = "free", labeller = sites) +
   ylab("Proportion of Symbiodiniaceae Genera") +
   labs(fill = "") +
-  scale_fill_manual(values = c( "#7CAE00", "#00BFC4", "#C77CFF", "#F8766D")) +
+  scale_fill_manual(values = c("#009E73", "#0072B2", "#CC79A7", "#F0E442")) +
   theme_classic() +
   theme(axis.title.x = element_text(color = "transparent"),
         axis.title.y = element_text(size = 20),
@@ -243,7 +243,7 @@ ggplot(sym_commun_depth, aes(x = newcol, y = value, fill = sym)) +
   facet_grid(~site, scales = "free", labeller = sites) +
   ylab("Proportion of Symbiodiniaceae Genera") +
   labs(fill = "") +
-  scale_fill_manual(values = c( "#7CAE00", "#00BFC4", "#C77CFF", "#F8766D")) +
+  scale_fill_brewer(palette = "Dark2") +
   scale_y_continuous(expand = c(0, 0)) +
   theme_classic() +
   theme(axis.title.x = element_text(color = "transparent"),
@@ -377,6 +377,9 @@ ggplot(grouped_depth, aes(x = as.factor(depth_int), y = ncol, fill = dom_sym)) +
             aes(x = depth - 0.5, y = prob, group = sym, color = sym))
 
 
+
+
+
 # new version with separation between mermaid and sandy cay reef
 depth_dom_sym %>% group_by(site) %>% summarise(min = min(depth), max = max(depth))
 depth_dom_sym <- depth_dom_sym %>%
@@ -388,18 +391,44 @@ grouped_depth <- depth_dom_sym %>%
   select(depth, dom_sym) %>%
   #mutate(depth_int = cut(depth, breaks = c(1.1, seq(2.6, 7.6, 1)))) %>%
   mutate(depth_int = cut(depth, breaks = c(1.1, seq(2.6, 7.6, 1.25)))) %>%
+  mutate(depth_int = case_when(grepl("1.1,2.6", depth_int) ~ "1.10 - 2.60",
+                               grepl("2.6,3.85", depth_int) ~ "2.60 - 3.85",
+                               grepl("3.85,5.1", depth_int) ~ "3.85 - 5.10",
+                               grepl("5.1,6.35", depth_int) ~ "5.10 - 6.35",
+                               grepl("6.35,7.6", depth_int) ~ "6.35 - 7.60")) %>%
   group_by(depth_int, dom_sym) %>%
   summarise(ncol = n()) %>%
   mutate(n = sum(ncol), label = paste0("N =", n)) %>%
-  mutate(prop = ncol/n)
+  mutate(prop = ncol/n) 
+
+
+                  
+                          
+
 
 ggplot(grouped_depth, aes(x = as.factor(depth_int), y = ncol, fill = dom_sym)) +
   geom_bar(stat = "identity", position = "fill") +
-  geom_text(aes(x = as.factor(depth_int), y = 1.05, label = label), inherit.aes = FALSE) +
-  scale_fill_manual(values = c( "#7CAE00", "#00BFC4", "#C77CFF", "#F8766D")) +
-  geom_vline(xintercept = 1.5, lty = 2) +
-  annotate("text", x = 1.7, y = 1.1, label = "MR       SC -->")
-  
+  geom_text(aes(x = as.factor(depth_int), y = 1.01, label = label), size = 8, inherit.aes = FALSE) +
+  scale_fill_manual(values = c(  "#009E73", 	"#CC79A7", "#56B4E9", "#999999")) +
+  geom_vline(xintercept = 1.5, lty = 2, size = 1.5) +
+  xlab("Depth(m)") +
+  ylab("Proportion  of Dominant Genera") +
+  annotate("text", x = 1.62, y = 1.04, size = 9, label = "Mermaid Reef      Sandy Cay Reef →") +
+  annotate("text", x = 2.9, y = 1.05, size = 20, color = "transparent", label = (expression(symbol('\256')))) +
+  scale_y_continuous(expand = c(0,0)) +
+  theme_classic() +
+  theme(axis.title = element_text(size = 30),
+        axis.text = element_text(size = 25, color = "black"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 25, face = "italic"),
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.position = "bottom",
+        )
+        
+        
+
+ggsave(filename = "figures/grouped_depth.png", width = 380, height = 380, units = "mm")
+
 ```
 
 
@@ -419,7 +448,7 @@ pres_sym_depth <- sample_data %>%
 ggplot(pres_sym_depth, aes(x = as.factor(depth_int), y = ncol, fill = sym)) +
   geom_bar(stat = "identity", position = "fill") +
   geom_text(aes(x = as.factor(depth_int), y = 1.05, label = label), inherit.aes = FALSE) +
-  scale_fill_manual(values = c( "#7CAE00", "#00BFC4", "#C77CFF", "#F8766D"))
+  scale_fill_manual(values = c(  "#009E73", 	"#CC79A7", "#56B4E9", "#999999"))
 
 
 ```
@@ -639,7 +668,7 @@ net_SC <- graph_from_data_frame(edges_SC, directed = FALSE, vertices = verts_SC)
   
   png("Figures/SC_Network.png", width = 300, height = 300, units = "mm", res = 600)
   
-  set.seed(85) #57, 63, 66, 85
+  set.seed(40) #57, 63, 66, 85
   
   plot(net_SC, edge.curved = 0, 
        edge.width = 15 * (E(net_SC)$weight)^0.5, 
@@ -651,7 +680,7 @@ net_SC <- graph_from_data_frame(edges_SC, directed = FALSE, vertices = verts_SC)
        vertex.size = ifelse(grepl("SC", names(V(net_SC))), 10, 25),
        vertex.color = ifelse(grepl("SC", names(V(net_SC))), 
                              colorRampPalette(c("white", "black"))(100)[as.numeric(cut(V(net_SC)$depth,breaks = 100))],
-                             c("#00BFC4","#C77CFF", "#F8766D", "#7CAE00")))
+                             c(  "#0072B2", "#56B4E9",  "#999999", "#009E73")))
   
   image.plot(legend.only = TRUE, 
              zlim = range(V(net_SC)$depth, na.rm = TRUE),
