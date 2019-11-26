@@ -183,7 +183,7 @@ sym_commun <- qpcr_good %>%
   mutate(site = factor(str_sub(Sample.Name, start = 1, end = 2))) 
   
 # Establishing Label for Sites 
-sites <- as_labeller(c(SC = "Sandy Cay", MR = "Mermaid Reef"))
+sites <- as_labeller(c(SC = "Sandy Cay Reef", MR = "Mermaid Reef"))
 
 # Stacked Bar Plot Separated by Site
 ggplot(sym_commun, aes(x = Sample.Name, y = value, fill = sym)) +
@@ -238,12 +238,13 @@ sym_commun_depth <- sym_commun %>%
  
   
 
-ggplot(sym_commun_depth, aes(x = newcol, y = value, fill = sym)) +
+symbiont_comp <- ggplot(sym_commun_depth, aes(x = newcol, y = value, fill = sym)) +
   geom_bar(stat = "identity", position = "fill") +
   facet_grid(~site, scales = "free", labeller = sites) +
-  ylab("Proportion of Symbiodiniaceae Genera") +
+  ylab("Symb. Proportions") +
   labs(fill = "") +
-  scale_fill_brewer(palette = "Dark2") +
+  #scale_fill_manual(values = c('#8dd3c7','#ffffb3','#bebada','#fb8072')) +  
+  scale_fill_manual(values = c('#a6cee3','#1f78b4','#b2df8a','#33a02c')) + 
   scale_y_continuous(expand = c(0, 0)) +
   theme_classic() +
   theme(axis.title.x = element_text(color = "transparent"),
@@ -257,6 +258,53 @@ ggplot(sym_commun_depth, aes(x = newcol, y = value, fill = sym)) +
 
 ggsave(filename = "figures/symiont_comp.png", width = 400, height = 300, units = "mm")
   
+```
+
+# Host genotype figure
+```{r}
+table_genotypes <- tibble(
+  colony = c(rep(1:12, 2)),
+  reef = c(rep("Mermaid Reef", 12), rep("Sandy Cay Reef", 12)),
+  genotype = c(rep("a", 12), "b", "c", "d", "e", "f", "g", "h", "i",
+               "j", "k", rep("l", 2))
+)
+
+plot_genotypes <- ggplot(data = table_genotypes,
+                         mapping = aes(x = colony, fill = genotype)) +
+  geom_bar(position = "fill") +
+  scale_x_discrete(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  scale_fill_manual(values = c('#fdb462','#8dd3c7','#ffffb3','#bebada','#fb8072','#80b1d3','#b3de69','#fccde5','#d9d9d9','#bc80bd','#ccebc5','#ffed6f')) +
+  labs(x = "", y = "Host Genotype") +
+  theme_classic() +
+  facet_wrap(~ reef) +
+  theme(legend.position = "none", axis.title = element_text(size = 8),
+        strip.text = element_text(size = 8),
+        axis.text.y = element_text(color = "transparent"),
+        axis.ticks.y = element_blank())
+
+plot_genotypes
+
+symbiont_comp_f <- symbiont_comp + 
+  theme_classic() +
+  labs(x = "") +
+  scale_x_discrete(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  theme(legend.position = "bottom", 
+        legend.text = element_text(size = 8, face = "italic"),
+        axis.title = element_text(size = 8),
+        strip.text = element_text(size = 8),
+        axis.text.x = element_text(size = 0, margin = margin(t = -20)),
+        axis.line.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        strip.background = element_blank(),
+        strip.text.x = element_blank())
+
+cowplot::plot_grid(plot_genotypes, symbiont_comp_f, 
+                   nrow = 2, rel_heights = c(0.9, 1),
+                   labels = "auto")
+
+ggsave(filename = "figures/host_symbiont_barplot.png", width = 174, height = 100, units = "mm")
 ```
 
 ```{r}
@@ -297,7 +345,7 @@ ggplot(depth_int_ncol, aes(x = as.factor(depth), y = ncol, fill = dom_sym)) +
         legend.position = "bottom",
         strip.text.x = element_text(size = 25)) +
   guides(fill=guide_legend(title="")) +
-  scale_fill_manual(values = c( "#7CAE00", "#00BFC4", "#C77CFF", "#F8766D"))
+  scale_fill_manual(values = c('#a6cee3','#1f78b4','#b2df8a','#33a02c'))
 
 ggsave(filename = "figures/depth_symbionts.png", width = 380, height = 400, units = "mm")
 
@@ -408,26 +456,24 @@ grouped_depth <- depth_dom_sym %>%
 
 ggplot(grouped_depth, aes(x = as.factor(depth_int), y = ncol, fill = dom_sym)) +
   geom_bar(stat = "identity", position = "fill") +
-  geom_text(aes(x = as.factor(depth_int), y = 1.01, label = label), size = 8, inherit.aes = FALSE) +
-  scale_fill_manual(values = c(  "#009E73", 	"#CC79A7", "#56B4E9", "#999999")) +
-  geom_vline(xintercept = 1.5, lty = 2, size = 1.5) +
-  xlab("Depth(m)") +
-  ylab("Proportion  of Dominant Genera") +
-  annotate("text", x = 1.62, y = 1.04, size = 9, label = "Mermaid Reef      Sandy Cay Reef →") +
-  annotate("text", x = 2.9, y = 1.05, size = 20, color = "transparent", label = (expression(symbol('\256')))) +
-  scale_y_continuous(expand = c(0,0)) +
+  geom_text(aes(x = as.factor(depth_int), y = 1.01, label = label), size = 1, inherit.aes = FALSE) +
+  scale_fill_manual(values = c('#a6cee3','#1f78b4','#b2df8a','#33a02c')) + 
+  geom_vline(xintercept = 1.5, lty = 2, lwd = 0.5) +
+  xlab("Depth (m)") +
+  ylab("Proportion  of colonies") +
+  annotate("text", x = 1.62, y = 1.04, size = 2, label = "  Mermaid Reef     Sandy Cay Reef →") +
+  scale_y_continuous(expand = c(0,0.02)) +
   theme_classic() +
-  theme(axis.title = element_text(size = 30),
-        axis.text = element_text(size = 25, color = "black"),
+  theme(axis.title = element_text(size = 8),
+        axis.text = element_text(size = 5, color = "black"),
         legend.title = element_blank(),
-        legend.text = element_text(size = 25, face = "italic"),
-        legend.spacing.x = unit(0.5, 'cm'),
-        legend.position = "bottom",
-        )
+        legend.text = element_text(size = 5, face = "italic"),
+        legend.spacing.x = unit(0.1, 'cm'),
+        legend.position = "bottom")
         
         
 
-ggsave(filename = "figures/grouped_depth.png", width = 380, height = 380, units = "mm")
+ggsave(filename = "figures/grouped_depth.png", width = 85, height = 85, units = "mm")
 
 ```
 
@@ -665,32 +711,32 @@ verts_SC <- tibble(Sample.Name = c(net_data_SC$Sample.Name, colnames(net_data_SC
  
 # Network Figure 
 net_SC <- graph_from_data_frame(edges_SC, directed = FALSE, vertices = verts_SC)
-  
-  png("Figures/SC_Network.png", width = 300, height = 300, units = "mm", res = 600)
-  
-  set.seed(40) #57, 63, 66, 85
-  
-  plot(net_SC, edge.curved = 0, 
-       edge.width = 15 * (E(net_SC)$weight)^0.5, 
-       edge.color = "gray65",
-       vertex.label = V(net_SC)$lab,
-       vertex.label.font = 2,
-       vertex.label.cex = 2.5,
-       vertex.label.color = "black", 
-       vertex.size = ifelse(grepl("SC", names(V(net_SC))), 10, 25),
-       vertex.color = ifelse(grepl("SC", names(V(net_SC))), 
-                             colorRampPalette(c("white", "black"))(100)[as.numeric(cut(V(net_SC)$depth,breaks = 100))],
-                             c(  "#0072B2", "#56B4E9",  "#999999", "#009E73")))
-  
-  image.plot(legend.only = TRUE, 
-             zlim = range(V(net_SC)$depth, na.rm = TRUE),
-             horizontal = TRUE,
-             legend.shrink = 0.6,
-             legend.lab = "Depth (m)",
-             col = colorRampPalette(c("white", "black"))(100))
-  
-  
-  dev.off()
+
+png("Figures/SC_Network.png", width = 200, height = 200, units = "mm", res = 600)
+
+set.seed(40) #57, 63, 66, 85
+
+plot(net_SC, edge.curved = 0, 
+     edge.width = 15 * (E(net_SC)$weight)^0.5, 
+     edge.color = "gray65",
+     vertex.label = V(net_SC)$lab,
+     vertex.label.font = 2,
+     vertex.label.cex = 2.5,
+     vertex.label.color = "black", 
+     vertex.size = ifelse(grepl("SC", names(V(net_SC))), 10, 25),
+     vertex.color = ifelse(grepl("SC", names(V(net_SC))), 
+                           colorRampPalette(c("white", "black"))(100)[as.numeric(cut(V(net_SC)$depth,breaks = 100))],
+                           c('#a6cee3','#1f78b4','#b2df8a','#33a02c')))
+
+image.plot(legend.only = TRUE, 
+           zlim = range(V(net_SC)$depth, na.rm = TRUE),
+           horizontal = TRUE,
+           legend.shrink = 0.6,
+           legend.lab = "Depth (m)",
+           col = colorRampPalette(c("white", "black"))(100))
+
+
+dev.off()
 
 ```
 
@@ -729,7 +775,7 @@ verts_MR <- tibble(Sample.Name = c(net_data_MR$Sample.Name, colnames(net_data_MR
 # Network Figure 
 net_MR <- graph_from_data_frame(edges_MR, directed = FALSE, vertices = verts_MR)
 
-png("Figures/MR_Network.png", width = 300, height = 300, units = "mm", res = 600)
+png("Figures/MR_Network.png", width = 200, height = 200, units = "mm", res = 600)
 
 set.seed(8)
 
@@ -742,7 +788,7 @@ plot(net_MR, edge.curved = 0,
      vertex.size = ifelse(grepl("MR", names(V(net_MR))), 10, 30),
      vertex.color = ifelse(grepl("MR", names(V(net_MR))), 
                            colorRampPalette(c("gray94"))(100)[as.numeric(cut(V(net_MR)$depth,breaks = 100))],
-                           c("#C77CFF")))
+                           c("#1f78b4")))
 
 dev.off()
 
