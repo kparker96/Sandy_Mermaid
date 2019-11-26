@@ -18,7 +18,7 @@ library(lubridate)
 ## Mermaid Reef
 ```{r}
 # May - October 2015
-mermaid1 <- read_csv("Data/Temperature/Mermaid's_Reef_download1.csv", skip = 1) %>%
+mermaid1 <- read_csv("Data/Temperature/Mermaid's_Reef_download1.csv", skip = 2) %>%
   clean_names() %>%
   mutate(time = mdy_hms(date_time_gmt_04_00),
          site = "mermaid_reef") %>%
@@ -28,7 +28,7 @@ range(mermaid1$time)
 
 ```{r}
 # August 2018 - January 2019
-mermaid2 <- read_csv("Data/Temperature/Mermaid_Reef_8-2018_0.csv", skip = 1) %>%
+mermaid2 <- read_csv("Data/Temperature/Mermaid_Reef_8-2018_0.csv", skip = 2) %>%
   clean_names() %>%
   mutate(time = mdy_hms(date_time_gmt_04_00),
          site = "mermaid_reef") %>%
@@ -40,7 +40,7 @@ range(mermaid2$time)
 ## Sandy Cay
 ```{r}
 # May 2015 - October 2015
-sandy0 <- read_csv("Data/Temperature/Sandy_Cay_Reef_-_Backreef#8_0.csv", skip = 1) %>%
+sandy0 <- read_csv("Data/Temperature/Sandy_Cay_Reef_-_Backreef#8_0.csv", skip = 2) %>%
   clean_names() %>%
   mutate(time = mdy_hms(date_time_gmt_04_00),
          site = "sandy_cay_reef",
@@ -52,7 +52,7 @@ range(sandy0$time)
 
 ```{r}
 # October 2015 - August 2016
-sandy1 <- read_csv("Data/Temperature/SANDY_Cay_Nursery.csv", skip = 1) %>%
+sandy1 <- read_csv("Data/Temperature/SANDY_Cay_Nursery.csv", skip = 2) %>%
   clean_names() %>%
   mutate(time = mdy_hms(date_time_gmt_04_00),
          site = "sandy_cay_nursery") %>%
@@ -63,7 +63,7 @@ range(sandy1$time)
 
 ```{r}
 # November 2017 - July 2018
-sandy2 <- read_csv("Data/Temperature/Sandy_Cay_Reef_2.csv", skip = 1) %>%
+sandy2 <- read_csv("Data/Temperature/Sandy_Cay_Reef_2.csv", skip = 2) %>%
   clean_names() %>%
   mutate(time = mdy_hms(date_time_gmt_05_00),
          site = "sandy_cay_reef") %>%
@@ -83,15 +83,6 @@ df <- bind_rows(mermaid1, mermaid2, sandy0, sandy1, sandy2) %>%
 ggplot(df, aes(x = time, y = temp_c, color = site)) +
   geom_line(alpha = 0.4) +
   ylim(18, 35)
-```
-
-# MR vs SC T Test
-```{r}
-t.test(temp_c ~ site, data = temp_overlap, paired = FALSE)
-
-temp_overlap %>%
-  count(site)
-
 ```
 
 # Plot of temperature over overlapping time period for both sites (2015)
@@ -117,6 +108,11 @@ ggplot(temp_overlap, aes(x = time, y = temp_c, color = site)) +
 
 ggsave(filename = "figures/temp_time.png", width = 350, height = 175, units = "mm")
 
+```
+
+# MR vs SC T Test
+```{r}
+t.test(temp_c ~ site, data = temp_overlap, paired = FALSE)
 ```
 
 # Bleaching Threshold: Determining Average Monthly Means 
