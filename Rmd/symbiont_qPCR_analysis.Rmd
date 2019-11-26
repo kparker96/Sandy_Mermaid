@@ -14,69 +14,13 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(devtools)   # install.packages("devtools")
 library(steponeR) # install_github("jrcunning/steponeR")
-library(ggmap)  # devtools::install_github("dkahle/ggmap")
 library(tidyverse) # install.packages("tidyverse")
 library(cowplot)
 library(grid)
 ```
 
-# Map
-```{r}
-register_google(key = readLines("google_api_key"))
 
-mermaid <- c(lon = -77.05280, lat = 26.55358)
-sandy <- c(lon = -76.98903, lat = 26.39886)
-mid <- c(lon = -77.16, lat = 26.47)
-bah <- c(lon = -78, lat = 25.5)
-loc <- bind_rows(mermaid = mermaid, sandy = sandy, .id = "reef")
-
-map_bahamas <- get_map(location = bah, source = "google", maptype = "satellite", zoom = 7)
-map_abaco <- get_map(location = mid, source = "google", maptype = "satellite", zoom = 11)
-map_mermaid <- get_map(location = mermaid, source = "google", maptype = "satellite", zoom = 18)
-map_sandy <- get_map(location = sandy, source = "google", maptype = "satellite", zoom = 18)
-
-gm_bah <- ggmap(map_bahamas, extent = "device") +
-  geom_rect(aes(xmin = -77.25, xmax = -76.93, ymin = 26.3, ymax = 26.62), fill = NA, color = "white", lwd = 0.4) +
-  scale_x_continuous(limits = c(-81, -76), expand = c(0, 0)) +
-  scale_y_continuous(limits = c(23.5, 27.5), expand = c(0, 0)) +
-  geom_rect(aes(xmin  = -80.99, xmax = -76, ymin = 23.51, ymax = 27.5), fill = NA, color = "white", lwd = 0.75) +
-  theme(axis.line = element_blank())
-
-gm_abaco <- ggmap(map_abaco, extent = "device") +
-  #scale_y_continuous(limits = c(-77.39, -76.9), expand = c(0, 0)) +
-  #geom_point(data = loc, aes(x = lon, y = lat), color = "white", pch = 22, cex = 4, lwd = 10) +
-  annotate("rect", xmin = -77.058, xmax = -77.048, ymin = 26.550, ymax = 26.558, 
-           col = "white", fill = NA, lwd = 0.4) +
-  annotate("rect", xmin = -76.994, xmax = -76.984, ymin = 26.395, ymax = 26.403, 
-           col = "white", fill = NA, lwd = 0.4) +
-  annotate("segment", x = -77.048, xend = -76.94, y = 26.558, yend = 26.665, colour = "white") +
-  annotate("segment", x = -77.048, xend = -76.94, y = 26.550, yend = 26.475, colour = "white") +
-  annotate("segment", x = -76.984, xend = -76.94, y = 26.403, yend = 26.465, colour = "white") +
-  annotate("segment", x = -76.984, xend = -76.94, y = 26.395, yend = 26.275, colour = "white") +    
-  inset(ggplotGrob(gm_bah), xmin = -77.4, xmax = -77.1, ymin = 26.3, ymax = 26.45) +
-  theme(axis.line = element_blank())
-
-gm_mermaid <- ggmap(map_mermaid, extent = "device") +
-  scale_y_continuous(limits = c(26.5525, 26.5545)) +
-  theme(axis.line = element_blank())
-
-gm_sandy <- ggmap(map_sandy, extent = "device") +
-  scale_y_continuous(limits = c(26.3980, 26.4000)) +
-  theme(axis.line = element_blank())
-
-zooms <- plot_grid(gm_mermaid, gm_sandy, ncol = 1, 
-                   labels = c("  b) Mermaid Reef", " c) Sandy Cay Reef"),
-                   label_colour = "white", hjust = 0)
-
-mapfig <- plot_grid(gm_abaco, zooms, ncol = 2, rel_widths = c(0.6, 0.4),
-                    labels = c("  a) Great Abaco", NA), label_colour = "white", hjust = 0)
-
-ggsave(filename = "Figures/map.png", plot = mapfig,
-       width = 174, height = 102, units = "mm")
-```
-
-
-#Importing Raw Data
+#Importing Raw qPCR Data from Quant Studio Design and Analysis Software 
 ```{r}
 # List Sandy Cay symbiodinium data files
 plates <- list.files(path = "Data/qPCR", pattern = ".txt", full.names = TRUE)
@@ -96,7 +40,7 @@ head(qpcr)
 ```
 
 
-#Organizing Raw Data 
+#Organizing Raw qPCR Data 
 ```{r}
 # Change NA Orb values to 27
 qpcr <- qpcr %>% 
@@ -169,42 +113,6 @@ setdiff(qpcr_dupes$Sample.Name, qpcr_dupes_f2$Sample.Name)
 setdiff(qpcr$Sample.Name, qpcr_good$Sample.Name)
 ```
 
-# Stacked Bar Plot of Symbiont Composition per Sample
-```{r}
-# Composition of Each Symbiont in Sample   
-sym_commun <- qpcr_good %>%
-  select(Sample.Name, A.Orb, B.Orb, C.Orb, D.Orb) %>%
-  mutate(Symbiodinium = case_when(A.Orb > 0 ~ A.Orb),
-         Breviolum = case_when(B.Orb > 0 ~ B.Orb),
-         Cladocopium = case_when(C.Orb > 0 ~ C.Orb),
-         Durusdinium = case_when(D.Orb > 0 ~ D.Orb)) %>%
-  select(Sample.Name, Symbiodinium, Breviolum, Cladocopium, Durusdinium) %>%
-  gather(key = "sym", value = "value", -Sample.Name) %>%
-  mutate(site = factor(str_sub(Sample.Name, start = 1, end = 2))) 
-  
-# Establishing Label for Sites 
-sites <- as_labeller(c(SC = "Sandy Cay Reef", MR = "Mermaid Reef"))
-
-# Stacked Bar Plot Separated by Site
-ggplot(sym_commun, aes(x = Sample.Name, y = value, fill = sym)) +
-  geom_bar(stat = "identity", position = "fill") +
-  facet_grid(~site, scales = "free", labeller = sites) +
-  ylab("Proportion of Symbiodiniaceae Genera") +
-  labs(fill = "") +
-  scale_fill_manual(values = c("#009E73", "#0072B2", "#CC79A7", "#F0E442")) +
-  theme_classic() +
-  theme(axis.title.x = element_text(color = "transparent"),
-        axis.title.y = element_text(size = 20),
-        axis.text.x = element_text(size = 20, color = "transparent", margin = margin(t = -20)),
-        axis.text.y = element_text(size = 20, color = "black", margin = margin(l = 30)),
-        panel.background = element_rect(color ="black"),
-        legend.text = element_text(size = 20, face = "italic"),
-        legend.position = "bottom") 
-       
-
-ggsave(filename = "figures/symiont_comp.png", width = 400, height = 300, units = "mm")
-
-```
 
 #Import Depth Data and Add to qpcr_good df
 ```{r}
@@ -216,28 +124,31 @@ depth <- sample_data %>%
   select(Sample.Name = tube_label, depth = colony_depth_m)
 ```
 
-```{r}
-#Uses gather function to restructure data frame from wide to long
-graph_good <- qpcr_good %>%
-  select(Sample.Name, A.Orb, B.Orb, C.Orb, D.Orb, dom_sym) %>%
-  gather(key = "sym", value = "value", -Sample.Name, -dom_sym)
 
-# add depth to qpcr_good data frame 
-depth_dom_sym <- sample_data %>%
-  select(tube_label, colony_depth_m, site) %>%
-  dplyr::rename(Sample.Name = tube_label, depth = colony_depth_m) %>%
-  right_join(graph_good)
-```
-
+# Stacked Bar Plot of Symbiont Composition per Sample in order of depth 
 ```{r}
+sym_commun <- qpcr_good %>%
+  select(Sample.Name, A.Orb, B.Orb, C.Orb, D.Orb) %>%
+  mutate(Symbiodinium = case_when(A.Orb > 0 ~ A.Orb),
+         Breviolum = case_when(B.Orb > 0 ~ B.Orb),
+         Cladocopium = case_when(C.Orb > 0 ~ C.Orb),
+         Durusdinium = case_when(D.Orb > 0 ~ D.Orb)) %>%
+  select(Sample.Name, Symbiodinium, Breviolum, Cladocopium, Durusdinium) %>%
+  gather(key = "sym", value = "value", -Sample.Name) %>%
+  mutate(site = factor(str_sub(Sample.Name, start = 1, end = 2))) 
+
+
+# Composition of Each Symbiont in Sample 
 sym_commun_depth <- sym_commun %>%
   right_join(depth) %>%
   mutate(value = ifelse(is.na(value), 0, value))%>%
   mutate(depth_int = cut(depth, breaks = 8)) %>%
   mutate(newcol = paste(depth, Sample.Name))
  
-  
+# Establishing Label for Sites 
+sites <- as_labeller(c(SC = "Sandy Cay Reef", MR = "Mermaid Reef"))
 
+# Stacked Bar Plot Separated by Site
 symbiont_comp <- ggplot(sym_commun_depth, aes(x = newcol, y = value, fill = sym)) +
   geom_bar(stat = "identity", position = "fill") +
   facet_grid(~site, scales = "free", labeller = sites) +
@@ -260,8 +171,9 @@ ggsave(filename = "figures/symiont_comp.png", width = 400, height = 300, units =
   
 ```
 
-# Host genotype figure
+# Host genotype and Symbiodiniaceae composition combined figure 
 ```{r}
+# Genotypes data table 
 table_genotypes <- tibble(
   colony = c(rep(1:12, 2)),
   reef = c(rep("Mermaid Reef", 12), rep("Sandy Cay Reef", 12)),
@@ -269,6 +181,7 @@ table_genotypes <- tibble(
                "j", "k", rep("l", 2))
 )
 
+# Host Genotype figure 
 plot_genotypes <- ggplot(data = table_genotypes,
                          mapping = aes(x = colony, fill = genotype)) +
   geom_bar(position = "fill") +
@@ -283,8 +196,8 @@ plot_genotypes <- ggplot(data = table_genotypes,
         axis.text.y = element_text(color = "transparent"),
         axis.ticks.y = element_blank())
 
-plot_genotypes
 
+# Symbiodiniaceae Composition figure 
 symbiont_comp_f <- symbiont_comp + 
   theme_classic() +
   labs(x = "") +
@@ -300,6 +213,8 @@ symbiont_comp_f <- symbiont_comp +
         strip.background = element_blank(),
         strip.text.x = element_blank())
 
+#Combined Host Genotype and Symbiodiniaceae composition figure 
+
 cowplot::plot_grid(plot_genotypes, symbiont_comp_f, 
                    nrow = 2, rel_heights = c(0.9, 1),
                    labels = "auto")
@@ -307,12 +222,31 @@ cowplot::plot_grid(plot_genotypes, symbiont_comp_f,
 ggsave(filename = "figures/host_symbiont_barplot.png", width = 174, height = 100, units = "mm")
 ```
 
+
+
+
+
+
+
 ```{r}
+#Uses gather function to restructure data frame from wide to long
+graph_good <- qpcr_good %>%
+  select(Sample.Name, A.Orb, B.Orb, C.Orb, D.Orb, dom_sym) %>%
+  gather(key = "sym", value = "value", -Sample.Name, -dom_sym)
+
+# add depth to qpcr_good data frame 
+depth_dom_sym <- sample_data %>%
+  select(tube_label, colony_depth_m, site) %>%
+  dplyr::rename(Sample.Name = tube_label, depth = colony_depth_m) %>%
+  right_join(graph_good)
+
 # Condensing dominant symbiont values to one per sample name 
 depth_dom_sym <- depth_dom_sym %>%
   distinct(Sample.Name, depth, dom_sym, site)
 ```
 
+
+# Dominant Symbiont Across Depth, Separated by Site 
 ```{r}
 #Form data table to separate by site and group Symbiont by depth
 depth_int_ncol<- depth_dom_sym %>%
@@ -353,7 +287,7 @@ position = position_dodge(width=0.5)
 
 ```
 
-#Symbiont Dominance VS Depth, Mermaid Reef and Sandy Cay data grouped together WITHOUT REGRESSION LINES
+#Symbiont Dominance VS Depth, Mermaid Reef and Sandy Cay data grouped together 
 ```{r}
 grouped_depth <- depth_dom_sym %>%
   select(depth, dom_sym) %>%
@@ -383,53 +317,13 @@ ggsave(filename = "figures/grouped_depth.png", width = 400, height = 300, units 
 ```
 
 
-
-
 #Symbiont Dominance VS Depth, Mermaid Reef and Sandy Cay data grouped together
 ```{r}
-grouped_depth <- depth_dom_sym %>%
-  select(depth, dom_sym) %>%
-  mutate(depth_int = cut(depth, breaks = c(1,2,3,4,5,6,7,8))) %>%
-  group_by(depth_int, dom_sym) %>%
-  summarise(ncol = n()) %>%
-  mutate(n = sum(ncol), label = paste0("N =", n)) %>%
-  mutate(prop = ncol/n)
-
-ggplot(grouped_depth, aes(x = as.factor(depth_int), y = ncol, fill = dom_sym)) +
-  geom_bar(stat = "identity", position = "fill") +
-  geom_text(aes(x = as.factor(depth_int), y = 1.05, label = label), inherit.aes = FALSE) +
-  scale_fill_manual(values = c( "#7CAE00", "#00BFC4", "#C77CFF", "#F8766D"))
-
-ggsave(filename = "figures/grouped_depth.png", width = 380, height = 400, units = "mm")
-  
-
-library(nnet)
-mod <- multinom(dom_sym ~ depth, data = depth_dom_sym)
-
-newdat <- data.frame(depth = seq(1, 8, 0.1))
-pred <- predict(mod, newdat, "probs")
-pred <- cbind(newdat, pred)
-pred <- gather(pred, sym, prob, -depth)
-
-
-ggplot(pred, aes(x = depth, y = prob, group = sym, color = sym)) +
-  geom_line()
-
-# overlay bars and model
-ggplot(grouped_depth, aes(x = as.factor(depth_int), y = ncol, fill = dom_sym)) +
-  geom_bar(stat = "identity", position = "fill", alpha = 0.6) +
-  geom_text(aes(x = as.factor(depth_int), y = 1.05, label = label), inherit.aes = FALSE) +
-  scale_fill_manual(values = c( "#7CAE00", "#00BFC4", "#C77CFF", "#F8766D")) +
-  scale_color_manual(values = c( "#7CAE00", "#00BFC4", "#C77CFF", "#F8766D")) +
-  geom_line(data = pred, inherit.aes = FALSE,
-            aes(x = depth - 0.5, y = prob, group = sym, color = sym))
-
-
-
-
-
 # new version with separation between mermaid and sandy cay reef
-depth_dom_sym %>% group_by(site) %>% summarise(min = min(depth), max = max(depth))
+depth_dom_sym %>% 
+  group_by(site) %>% 
+  summarise(min = min(depth), max = max(depth))
+
 depth_dom_sym <- depth_dom_sym %>%
   mutate(depth = case_when(site == "mermaid_reef" & depth == 2.6 ~ 2.59,
                            site == "sandy_cay" & depth == 2.6 ~ 2.61,
@@ -447,12 +341,7 @@ grouped_depth <- depth_dom_sym %>%
   group_by(depth_int, dom_sym) %>%
   summarise(ncol = n()) %>%
   mutate(n = sum(ncol), label = paste0("N =", n)) %>%
-  mutate(prop = ncol/n) 
-
-
-                  
-                          
-
+  mutate(prop = ncol/n)
 
 ggplot(grouped_depth, aes(x = as.factor(depth_int), y = ncol, fill = dom_sym)) +
   geom_bar(stat = "identity", position = "fill") +
@@ -471,34 +360,10 @@ ggplot(grouped_depth, aes(x = as.factor(depth_int), y = ncol, fill = dom_sym)) +
         legend.spacing.x = unit(0.1, 'cm'),
         legend.position = "bottom")
         
-        
 
 ggsave(filename = "figures/grouped_depth.png", width = 85, height = 85, units = "mm")
 
 ```
-
-
-# Symbiont PRESENCE vs Depth, MR and SC data grouped together
-```{r}
-pres_sym_depth <- sample_data %>%
-  select(Sample.Name = tube_label, depth = colony_depth_m) %>%
-  right_join(sym_commun) %>%
-  mutate(value = ifelse(is.na(value), 0, value)) %>%
-  filter(value != 0)%>%
-  select(depth, sym) %>%
-  mutate(depth_int = cut(depth, breaks = c(1,2,3,4,5,6,7,8))) %>%
-  group_by(depth_int, sym) %>%
-  summarise(ncol = n()) %>%
-  mutate(n = sum(ncol), label = paste0("N =", n))
-
-ggplot(pres_sym_depth, aes(x = as.factor(depth_int), y = ncol, fill = sym)) +
-  geom_bar(stat = "identity", position = "fill") +
-  geom_text(aes(x = as.factor(depth_int), y = 1.05, label = label), inherit.aes = FALSE) +
-  scale_fill_manual(values = c(  "#009E73", 	"#CC79A7", "#56B4E9", "#999999"))
-
-
-```
-
 
 
 # Analyzing Depth Between Sites
@@ -535,110 +400,6 @@ metrics <- depth_dom_sym %>%
     median = median(depth, na.rm = TRUE))
 ```
 
-# Symbiont Prevalence Across Sites
-```{r}
-# Prevalence of symbionts at each depth 
-sym_prev_depth <- depth_dom_sym %>%
-  select(Sample.Name, depth, site) %>%
-  right_join(qpcr_good) %>%
-  select(Sample.Name, A.Orb, B.Orb, C.Orb, D.Orb, site, depth) %>%
-  mutate(Symbiodinium = case_when(A.Orb > 0 ~ 1),
-         Breviolum = case_when(B.Orb > 0 ~ 1),
-         Cladocopium = case_when(C.Orb > 0 ~ 1),
-         Durisdinium = case_when(D.Orb > 0 ~ 1)) %>%
-  select(Sample.Name, Symbiodinium, Breviolum, Cladocopium, Durisdinium, site, depth) %>%
-  mutate(Symbiodinium = ifelse(is.na(Symbiodinium), 0, Symbiodinium),
-         Breviolum = ifelse(is.na(Breviolum), 0, Breviolum),
-         Cladocopium = ifelse(is.na(Cladocopium), 0, Cladocopium),
-         Durisdinium = ifelse(is.na(Durisdinium), 0, Durisdinium)) %>%
-  gather(key = "sym", value = "value", -Sample.Name, -site, -depth) %>%
-  filter(value != 0) %>%
-  mutate(depth_int = cut(depth, breaks = 4)) %>%
-  group_by(depth_int, sym, site) %>%
-  summarise(ncol = n())
-
-
-#Plotting prevalence of symbionts at depth in SC
-ggplot(sym_prev_depth, aes(x = depth_int, y = ncol, fill = sym)) +
-  facet_wrap(~site) +
-  geom_bar(stat = "identity", position = position_dodge()) +
-  xlab("Depth (m)") +
-  ylab("Number of Corals Housing Symbiont") +
-  guides(fill=guide_legend(title="Symbiont")) +
-  scale_fill_manual(values = c( "#7CAE00", "#00BFC4", "#C77CFF", "#F8766D")) 
-```
-
-```{r}
-# Prevalence of each symbiodinium overall
-prev_sym <- sample_data %>%
-  rename(Sample.Name = tube_label, depth = colony_depth_m) %>%
-  mutate(Site = str_sub(Sample.Name, start = 1, end = 2)) %>%
-  select(Sample.Name, Site) %>%
-  filter(Site != "MR") %>%
-  merge(qpcr_good, by = "Sample.Name") %>%
-  select(Sample.Name, A.Orb, B.Orb, C.Orb, D.Orb, Site) %>%
-  select(Sample.Name, A.Orb, B.Orb, C.Orb, D.Orb) %>%
-  rename(Symbiodinium = A.Orb, Breviolum = B.Orb, Cladocopium = C.Orb, Durusdinium = D.Orb) %>%
-  gather(key = "sym", value = "value", -Sample.Name)
-
-sym_yes <- prev_sym %>%
-  filter(value > 0)
-
-#Finding the percentage of each symbiont 
-sym_yes %>%
-  count(vars = sym) %>%
-  mutate(prev = n/30 * 100) %>%
-  ggplot(aes(x = vars, y = prev, fill = vars)) +
-  geom_bar(stat = "identity", postion = "fill") +
-  scale_y_continuous(expand = c(0, 0)) +
-  xlab("") +
-  ylab("% of Corals Housing Symbiont") +
-  theme_bw() +
-  theme(axis.text.y = element_text(size = 12, color = "black", margin =margin(l = 20)),
-        axis.text.x = element_text(size = 14, color = "black", face = "italic"),
-        axis.title = element_text(size = 14),
-        panel.grid.major.y = element_line(color = "gray"),
-        panel.background = element_rect(color = "transparent")) +
-  scale_fill_manual(values = c( "#7CAE00", "#00BFC4", "#C77CFF", "#F8766D")) 
-
-ggsave(filename = "figures/prev_SC.png", width = 350, height = 175, units = "mm")
-
-```
-
-```{r}
-#Prevalence of symbionts overall at Mermaid Reef
-prev_sym_MR <- sample_data %>%
-  rename(Sample.Name = tube_label, depth = colony_depth_m) %>%
-  mutate(Site = str_sub(Sample.Name, start = 1, end = 2)) %>%
-  select(Sample.Name, Site) %>%
-  merge(qpcr_good, by = "Sample.Name") %>%
-  select(Sample.Name, A.Orb, B.Orb, C.Orb, D.Orb, Site) %>%
-  filter(Site == "MR") %>%
-  select(Sample.Name, A.Orb, B.Orb, C.Orb, D.Orb) %>%
-  rename(Symbiodinium = A.Orb, Breviolum = B.Orb, Cladocopium = C.Orb, Durusdinium = D.Orb) %>%
-  gather(key = "sym", value = "value", -Sample.Name) %>%
-  select(sym, value) 
-
-
-prev_sym_MR %>%
-  count(vars = sym) %>%
-  mutate(prev = n/40 * 100) %>%
-  ggplot(aes(x = vars, y = prev, fill = vars)) +
-  geom_bar(stat = "identity", postion = "fill", show.legend = FALSE) +
-  scale_y_continuous(expand = c(0,0)) +
-  xlab("") +
-  ylab("% of Corals Housing Symbiont") +
-  theme_bw() +
-  theme(axis.text.y = element_text(size = 12, color = "black", margin =margin(l = 20)),
-        axis.text.x = element_text(size = 14, color = "black", face = "italic"),
-        axis.title = element_text(size = 14), 
-        panel.grid.major.y = element_line(color = "gray"),
-        panel.background = element_rect(color = "transparent")) +
-  scale_fill_manual(values = c( "#ffffff00", "#ffffff00", "#C77CFF", "#ffffff00"))
-
-ggsave(filename = "figures/prev_MR.png", width = 350, height = 175, units = "mm")
-```
-
 #Prevalence of Symbiont Combinations at SC 
 ```{r}
 sym_combos <- sample_data %>%
@@ -666,14 +427,6 @@ sym_combos <- sample_data %>%
                              D.Orb > 0 & A.Orb == 0 & B.Orb == 0 & C.Orb == 0 ~ "D")) %>%
   mutate(symbiont = factor(symbiont))
 
-#Percentage of Symbiont Combinations Bar Plot
-sym_combos_graph <- sym_combos %>%
-  select(Sample.Name, symbiont) %>%
-  count(vars = symbiont) %>%
-  mutate(prev = n) %>%
-  select(vars, prev) %>%
-  ggplot(aes(x = vars, y = prev, fill = vars)) +
-  geom_col()
 ```
 
 # Network Analysis of Sites
@@ -794,17 +547,6 @@ dev.off()
 
 ```
 
-# Samples Also Used for Microsatellite Analysis
-```{r}
-#Mircosatellite Samples from SC that were "clones"
-microsat <- sym_commun %>%
-  filter(Sample.Name == "SC018" | Sample.Name == "SC020")
-
-ggplot(microsat, aes(x = Sample.Name, y = value, fill = sym)) +
-  geom_bar(stat = "identity", position = "fill")
-  
-```
-
 #Quality Control
 ```{r}
 #Orb CT means at each site
@@ -839,32 +581,3 @@ sd_redo <- qpcr_good %>%
   geom_point(size = 3)
 
 ```
-
-#Histogram of Sites Orb.CT.means
-```{r}
-# histogram of MR Orb.CT.Values
-histogram_MR <- qpcr_good %>%
-  mutate(site = str_sub(Sample.Name, start = 1, end = 2)) %>%
-  select(Sample.Name, Orb.CT.mean, site) %>%
-  filter(site != "SC")
-  
-hist(histogram_MR$Orb.CT.mean, 
-     main = "Orb.CT.mean of Samples at MR",
-     xlab = "Orb.CT.mean",
-     col = "green",
-     breaks = 10) 
-
-#Histogram of Of SC Orb.CT.Values
-histogram_SC <- qpcr_good %>%
-  mutate(site = str_sub(Sample.Name, start = 1, end = 2)) %>%
-  select(Sample.Name, Orb.CT.mean, site) %>%
-  filter(site != "MR")
-  
-
-hist(histogram_SC$Orb.CT.mean, 
-     main = "Orb.CT.mean of Samples at SC",
-     xlab = "Orb.CT.mean",
-     col = "blue",
-     breaks = 10) 
-```
-
