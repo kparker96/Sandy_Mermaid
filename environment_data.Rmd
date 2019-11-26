@@ -1,0 +1,187 @@
+---
+title: "environment_data"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(janitor)
+library(lubridate)
+```
+
+# Import Environmental Data
+```{r}
+#Benthic Organism Cover Data
+NB_benthic_point_cover <- read_csv("Data/Environmental_Data/benthic_point_cover.csv") %>%
+  clean_names() 
+
+benthic_cover <- NB_benthic_point_cover %>%
+  select(batch, code, site, date, latitude, longitude, zone, subregion, shelf, ecoregion, depth, nt, 
+         live.coral = l_cavg, lc.std = l_cstd, newly.dead.coral = nd_cavg, ndc.std = nd_cstd, 
+         algae.crustose = cc_aavg, ac.std = cc_astd, newly.dead.algae.crustose = ndcc_aavg, ndacc.std = ndcc_astd, 
+         other.calcifiers = o_cavg, oc.std = o_cstd, turf.algae = t_aavg, 
+         ta.std = t_astd, turf.algae.sediment = ta_savg, tas.std = ta_sstd, macro.algae.mixed = m_aavg, mam.std 
+         =m_astd, macro.algae.calc = cm_aavg, mac.std = cm_astd, macro.algae.fleshy = fm_aavg, 
+         maf.std = fm_astd, cyanobacteria = cya_navg, cyan.std = cya_nstd, biofilm = fil_mavg, film.std = fil_mstd, 
+         aggressive.inverts = ain_vavg, ai.std = ain_vstd, other.inverts = oin_vavg, 
+         oi.std = oin_vstd, algae.peyssonnelid =pey_savg, ap.std = pey_sstd, other = oavg, os.std = ostd)
+
+# Coral Composition by Genus
+NB_coral_composition_genus <- read_csv("Data/Environmental_Data/coral_composition_genus.csv") %>%
+  clean_names() 
+
+coral_composition_genus <- NB_coral_composition_genus %>%
+  rename(acropora = acro, agaricia = agar, colpophyllia = colp, diploria = dipl, meandrina = mean, millepora = mill,
+         montastraea = mont, orbicella = orbi, porites = pori, pseudodiploria = pseu, siderastrea = side, 
+         stepanocoenia = step)
+
+# Coral Composition by Species
+NB_coral_composition_species <- read_csv("Data/Environmental_Data/coral_composition_species.csv") %>%
+  clean_names() 
+
+coral_composition_species <- NB_coral_composition_species %>%
+  rename(a.cervicornis = acer, a.palmata = apal, a.agaricites = aaga, a.tenuifolia = aten, agaricia.sp = agar, 
+         c.natans = cnat, d.labrynthiformis = dlab, m.alcicornis = malc, m.complanata = mcom, 
+         m.meandrites = mmea, m.cavernosa =mcav, o.annularis = oann, o.faveolata = ofav, o.franski = ofra, 
+         p.asteroides = past, p.furcata = pfur, p.porites = ppor, p.clivosa = pcli, p.strigosa = pstr,
+         s.siderea = ssid, s.intersepta = sint)
+
+# Coral Size
+coral_size <- readxl::read_xlsx("Data/Environmental_Data/coral_size.xlsx")
+```
+
+
+# Coral size t-tests
+```{r}
+library(BSDA)   #install.packages("BSDA")
+
+# Difference in diameter
+tsum.test(mean.x = filter(coral_size, site == "Mermaid Reef", metric == "diameter")$mean,
+             s.x = filter(coral_size, site == "Mermaid Reef", metric == "diameter")$stdev,
+             n.x = filter(coral_size, site == "Mermaid Reef", metric == "diameter")$n,
+          mean.y = filter(coral_size, site == "Sandy Cay Reef", metric == "diameter")$mean,
+             s.y = filter(coral_size, site == "Sandy Cay Reef", metric == "diameter")$stdev,
+             n.y = filter(coral_size, site == "Sandy Cay Reef", metric == "diameter")$n,
+          var.equal = FALSE)
+
+# Difference in height
+tsum.test(mean.x = filter(coral_size, site == "Mermaid Reef", metric == "height")$mean,
+             s.x = filter(coral_size, site == "Mermaid Reef", metric == "height")$stdev,
+             n.x = filter(coral_size, site == "Mermaid Reef", metric == "height")$n,
+          mean.y = filter(coral_size, site == "Sandy Cay Reef", metric == "height")$mean,
+             s.y = filter(coral_size, site == "Sandy Cay Reef", metric == "height")$stdev,
+             n.y = filter(coral_size, site == "Sandy Cay Reef", metric == "height")$n,
+          var.equal = FALSE)
+
+# Difference in width
+tsum.test(mean.x = filter(coral_size, site == "Mermaid Reef", metric == "width")$mean,
+             s.x = filter(coral_size, site == "Mermaid Reef", metric == "width")$stdev,
+             n.x = filter(coral_size, site == "Mermaid Reef", metric == "width")$n,
+          mean.y = filter(coral_size, site == "Sandy Cay Reef", metric == "width")$mean,
+             s.y = filter(coral_size, site == "Sandy Cay Reef", metric == "width")$stdev,
+             n.y = filter(coral_size, site == "Sandy Cay Reef", metric == "width")$n,
+          var.equal = FALSE)
+```
+
+#Coral Size Plot
+```{r}
+coral_size
+
+ggplot(coral_size, aes(x = metric, y = mean)) +
+  geom_errorbar(aes(ymin = mean - stdev, ymax = mean + stdev), lwd = 0.25, width = 0.5) +
+  geom_point(aes(shape = metric, color = metric), size = 5) +
+  facet_wrap(~site) +
+  ylab("Average (cm)") +
+  xlab("") +
+  ylim(0, 210)
+
+sigstar <- tibble(
+  metric = unique(coral_size$metric),
+   label = c("*", "", "")
+)
+
+sizeplot <- ggplot(coral_size, aes(x = site, y = mean)) +
+  geom_errorbar(aes(ymin = mean - stdev, ymax = mean + stdev), lwd = 0.25, width = 0.5) +
+  geom_point(aes(color = site), size = 5, pch = 15) +
+  facet_wrap(~metric, strip.position = "bottom") +
+  ylab("Average (cm)") +
+  xlab("") +
+  scale_y_continuous(limits = c(0, 220), expand = c(0, 0)) +
+  theme(axis.text.x = element_blank(),
+        axis.line.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        legend.position = "none") +
+  geom_text(data = sigstar, inherit.aes = FALSE,
+            aes(x = 1.5, y = 175, label = label), size = 8)
+
+sizeplot
+```
+
+
+# Percent of Coral species
+```{r}
+figure_coral_comp <- NB_coral_composition_species %>%
+  select(site, matches("percent")) %>%
+  replace(is.na(.), 0) %>%
+  filter(site %in% c("Mermaid Reef", "Sandy Cay Reef - Fore reef")) %>%
+  mutate(site = recode(site, "Sandy Cay Reef - Fore reef" = "Sandy Cay Reef")) %>%
+  gather(key = "species", value = "value", -site) %>%
+  group_by(species) %>%
+  filter(value > 0) %>%
+  ungroup() %>%
+  mutate(species = toupper(gsub("percent_", "", species))) %>%
+  complete(site, species)
+
+ggplot(figure_coral_comp, aes(x = species, y = as.numeric(value), fill = site)) +
+  geom_col(stat = "identity", position = "dodge") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "none") +
+  labs(x = "", y = "Percent of colonies")
+
+```
+
+#Percent coverage of Benthic Communities
+```{r}
+benthic_data <- benthic_cover %>%
+  filter(site == "Mermaid Reef" | site == "Sandy Cay Reef - Fore reef") %>%
+  select(site, live.coral, lc.std, newly.dead.coral, ndc.std, algae.crustose, ac.std, newly.dead.algae.crustose,
+         ndacc.std, other.calcifiers, oc.std, turf.algae, ta.std, turf.algae.sediment, tas.std, macro.algae.mixed,
+         mam.std, macro.algae.calc, mac.std, macro.algae.fleshy, maf.std, cyanobacteria, cyan.std, biofilm,
+         film.std, aggressive.inverts, ai.std, other.inverts, oi.std, algae.peyssonnelid, ap.std, other, os.std)
+  
+```
+
+
+
+
+
+
+
+
+
+
+
+
+# Sandy Cay and Mermaid Reef Coral Composition
+```{r}
+library(ggridges)
+library(vegan)
+
+# importing coral composition data from Mermaid Reef and Sandy Cay
+coral_comp <- readxl::read_xlsx("Data/Environmental_Data/coral_comp_MR_SC.xlsx")
+
+# Gathering Data into long format
+coral_comp_fig <- coral_comp %>%
+  gather(key = "site", value = "value", -coral_species)
+
+# Stacked bar plot of coral species makeup at both sites
+ggplot(coral_comp_fig, aes(x = site, y = value, fill = coral_species)) +
+  geom_bar(stat = "identity", position = "fill")
+
+   
+```
+
