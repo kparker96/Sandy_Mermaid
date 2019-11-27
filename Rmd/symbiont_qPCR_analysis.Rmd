@@ -159,15 +159,15 @@ symbiont_comp <- ggplot(sym_commun_depth, aes(x = newcol, y = value, fill = sym)
   scale_y_continuous(expand = c(0, 0)) +
   theme_classic() +
   theme(axis.title.x = element_text(color = "transparent"),
-        axis.title.y = element_text(size = 35),
-        axis.text.x = element_text(size = 30, color = "transparent", margin = margin(t = -20)),
-        axis.text.y = element_text(size = 30, color = "black", margin = margin(l = 30), angle = 90),
+        axis.title.y = element_text(size = 10),
+        axis.text.x = element_text(size = 10, color = "transparent", margin = margin(t = -20)),
+        axis.text.y = element_text(size = 10, color = "black", angle = 90),
         panel.background = element_rect(color ="black"),
-        legend.text = element_text(size = 30, face = "italic"),
-        strip.text.x = element_text(size = 40),
+        legend.text = element_text(size = 10, face = "italic"),
+        strip.text.x = element_text(size = 10),
         legend.position = "bottom")
 
-ggsave(filename = "figures/symiont_comp.png", width = 400, height = 300, units = "mm")
+# ggsave(filename = "figures/symiont_comp.png", width = 84, height = 100, units = "mm")
   
 ```
 
@@ -207,7 +207,7 @@ symbiont_comp_f <- symbiont_comp +
         legend.text = element_text(size = 8, face = "italic"),
         axis.title = element_text(size = 8),
         strip.text = element_text(size = 8),
-        axis.text.x = element_text(size = 0, margin = margin(t = -20)),
+        axis.text.x = element_text(size = 0, color = "transparent", margin = margin(t = -20)),
         axis.line.x = element_blank(),
         axis.ticks.x = element_blank(),
         strip.background = element_blank(),
@@ -219,7 +219,7 @@ cowplot::plot_grid(plot_genotypes, symbiont_comp_f,
                    nrow = 2, rel_heights = c(0.9, 1),
                    labels = "auto")
 
-ggsave(filename = "figures/host_symbiont_barplot.png", width = 174, height = 100, units = "mm")
+ggsave(filename = "figures/Fig4.png", width = 174, height = 100, units = "mm")
 ```
 
 
@@ -281,7 +281,7 @@ ggplot(depth_int_ncol, aes(x = as.factor(depth), y = ncol, fill = dom_sym)) +
   guides(fill=guide_legend(title="")) +
   scale_fill_manual(values = c('#a6cee3','#1f78b4','#b2df8a','#33a02c'))
 
-ggsave(filename = "figures/depth_symbionts.png", width = 380, height = 400, units = "mm")
+# ggsave(filename = "figures/depth_symbionts.png", width = 380, height = 400, units = "mm")
 
 position = position_dodge(width=0.5)
 
@@ -313,7 +313,7 @@ ggplot(grouped_depth, aes(x = as.factor(depth_int), y = ncol, fill = dom_sym)) +
         legend.spacing.x = unit(0.5, 'cm'),
         panel.grid = element_line(color = "transparent"))
 
-ggsave(filename = "figures/grouped_depth.png", width = 400, height = 300, units = "mm")
+# ggsave(filename = "figures/grouped_depth.png", width = 400, height = 300, units = "mm")
 ```
 
 
@@ -345,23 +345,24 @@ grouped_depth <- depth_dom_sym %>%
 
 ggplot(grouped_depth, aes(x = as.factor(depth_int), y = ncol, fill = dom_sym)) +
   geom_bar(stat = "identity", position = "fill") +
-  geom_text(aes(x = as.factor(depth_int), y = 1.01, label = label), size = 1, inherit.aes = FALSE) +
+  geom_text(aes(x = as.factor(depth_int), y = 1.01, label = label), size = 1.5, inherit.aes = FALSE) +
   scale_fill_manual(values = c('#a6cee3','#1f78b4','#b2df8a','#33a02c')) + 
   geom_vline(xintercept = 1.5, lty = 2, lwd = 0.5) +
   xlab("Depth (m)") +
   ylab("Proportion  of colonies") +
-  annotate("text", x = 1.62, y = 1.04, size = 2, label = "  Mermaid Reef     Sandy Cay Reef →") +
+  annotate("text", x = 1.68, y = 1.05, size = 2.1, label = "  Mermaid Reef    Sandy Cay Reef →") +
   scale_y_continuous(expand = c(0,0.02)) +
   theme_classic() +
   theme(axis.title = element_text(size = 8),
         axis.text = element_text(size = 5, color = "black"),
         legend.title = element_blank(),
-        legend.text = element_text(size = 5, face = "italic"),
+        legend.text = element_text(face = "italic", size = 5),
         legend.spacing.x = unit(0.1, 'cm'),
-        legend.position = "bottom")
+        legend.position = "bottom",
+        legend.key = element_rect(size = 0.3, linetype = "blank"))
         
 
-ggsave(filename = "figures/grouped_depth.png", width = 85, height = 85, units = "mm")
+ggsave(filename = "figures/Fig5.png", width = 84, height = 84, units = "mm")
 
 ```
 
@@ -546,6 +547,8 @@ plot(net_MR, edge.curved = 0,
 dev.off()
 
 ```
+
+
 
 #Quality Control
 ```{r}
