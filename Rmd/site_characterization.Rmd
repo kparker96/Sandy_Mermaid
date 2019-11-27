@@ -68,7 +68,7 @@ zooms <- plot_grid(gm_mermaid, gm_sandy, ncol = 1,
 mapfig <- plot_grid(gm_abaco, zooms, ncol = 2, rel_widths = c(0.6, 0.4),
                     labels = c("  a) Great Abaco", NA), label_colour = "white", hjust = 0)
 
-ggsave(filename = "Figures/map.png", plot = mapfig,
+ggsave(filename = "Figures/Fig1.png", plot = mapfig,
        width = 174, height = 102, units = "mm")
 ```
 ![](../Figures/map.png)
