@@ -154,11 +154,9 @@ temp_time_overlap <- ggplot(temp_overlap, aes(x = time, y = temp_c, color = site
   theme_bw() + 
   theme(panel.grid = element_line(color = "white"),
         axis.title.x = element_text(color = "transparent"),
-        axis.title.y = element_text(size = 18),
-        axis.text.x = element_text(size = 18, color = "black", margin = margin(t = 5)),
-        axis.text.y = element_text(size = 18, color = "black", margin = margin(l = 15)),
-        legend.position = "none",
-        legend.text = element_text(size = 25)) +
+        axis.text.x = element_text(color = "black"),
+        axis.text.y = element_text(color = "black"),
+        legend.position = "none") +
   xlab(label = "Month") +
   ylab(expression("Temperature " ( degree*C))) +
   scale_color_manual(name = "Site", labels = c("Mermaid Reef", "Sandy Cay"), values = c("#F8766D","#00BFC4"))
@@ -186,14 +184,10 @@ density_plot <- ggplot(temp_dat, aes(x = temp_c, fill = site)) +
   theme_bw() +
   coord_flip() +
   theme(panel.grid = (element_line(color = "transparent")),
-    axis.text.y = element_text(size = 18, color = "black", margin =margin(l = 20)),
-        axis.text.x = element_text(size = 18, color = "black"),
-        axis.title.y = element_text(size = 1, color = "transparent"),
-        axis.title.x = element_text(size = 18),
-        legend.text = element_text(size = 18),
-    legend.direction = "horizontal",
-    legend.position = c(-0.1,-0.16),
-    legend.spacing.x = unit(0.5, 'cm')) +
+    axis.text.y = element_text(color = "black"),
+        axis.text.x = element_text(color = "black"),
+        axis.title.y = element_text(color = "transparent"),
+    legend.position = "none") +
   xlab(expression("Temperature " (degree*C))) +
   ylab(label = "Frequency") +
   guides(colour = guide_legend(nrow = 1)) +
@@ -340,13 +334,18 @@ sizeplot <- ggplot(coral_size, aes(x = site, y = mean)) +
   facet_wrap(~metric, strip.position = "bottom") +
   ylab("Average (cm)") +
   xlab("") +
+  theme_classic() +
   scale_y_continuous(limits = c(0, 220), expand = c(0, 0)) +
   theme(axis.text.x = element_blank(),
         axis.line.x = element_blank(),
         axis.ticks.x = element_blank(),
-        legend.position = "none") +
+        plot.margin= margin(b = 1.7),
+        legend.title = element_blank(),
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.direction = "horizontal",
+        legend.position = c(0,-0.2)) +
   geom_text(data = sigstar, inherit.aes = FALSE,
-            aes(x = 1.5, y = 175, label = label), size = 8)
+            aes(x = 1.5, y = 175, label = label), size = 8) 
 
 sizeplot
 ```
@@ -365,13 +364,106 @@ figure_coral_comp <- NB_coral_composition_species %>%
   mutate(species = toupper(gsub("percent_", "", species))) %>%
   complete(site, species)
 
-ggplot(figure_coral_comp, aes(x = species, y = as.numeric(value), fill = site)) +
+coral_comp <- ggplot(figure_coral_comp, aes(x = species, y = as.numeric(value), fill = site)) +
   geom_col(stat = "identity", position = "dodge") +
+  theme_classic() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.margin= margin(b = 1.5),
         legend.position = "none") +
   labs(x = "", y = "Percent of colonies")
 
 ```
+
+
+# combined Site Characterization Figures
+```{r}
+
+temp_time_overlap <- ggplot(temp_overlap, aes(x = time, y = temp_c, color = site)) +
+  geom_line(alpha = 0.7, size = 1.2) +
+  theme_classic() + 
+  theme(panel.grid = element_line(color = "white"),
+        axis.text.x = element_text(color = "black"),
+        axis.text.y = element_text(color = "black"),
+        legend.position = "none") +
+  xlab(label = "") +
+  ylab(expression("Temperature " ( degree*C))) +
+  scale_color_manual(name = "Site", labels = c("Mermaid Reef", "Sandy Cay"), values = c("#F8766D","#00BFC4"))
+
+
+
+density_plot <- ggplot(temp_dat, aes(x = temp_c, fill = site)) +
+  geom_density(alpha = 0.6, position = "identity") +
+  theme_classic() +
+  coord_flip() +
+  theme(panel.grid = (element_line(color = "transparent")),
+    axis.text.y = element_text(color = "black"),
+        axis.text.x = element_text(color = "black"),
+        axis.title.y = element_text(color = "black"),
+    legend.position = "none") +
+  xlab(expression("Temperature " (degree*C))) +
+  ylab(label = "Frequency") +
+  guides(colour = guide_legend(nrow = 1)) +
+  scale_y_continuous(expand = c(0,0))  +
+  scale_fill_manual(name="",
+                         breaks=c("mermaid_reef", "sandy_cay_reef"),
+                         labels=c("Mermaid Reef", "Sandy Cay Reef"), values=c( "#00BFC4", "#F8766D"))
+
+
+sizeplot <- ggplot(coral_size, aes(x = site, y = mean)) +
+  geom_errorbar(aes(ymin = mean - stdev, ymax = mean + stdev), lwd = 0.25, width = 0.5) +
+  geom_point(aes(color = site), size = 5, pch = 15) +
+  facet_wrap(~metric, strip.position = "bottom") +
+  ylab("Average (cm)") +
+  xlab("") +
+  theme_classic() +
+  scale_y_continuous(limits = c(0, 220), expand = c(0, 0)) +
+  theme(axis.text.x = element_blank(),
+        axis.line.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.text.y = element_text(color = "black"),
+        plot.margin= margin(b = 1.7),
+        legend.title = element_blank(),
+        legend.spacing.x = unit(0.3, 'cm'),
+        legend.direction = "horizontal",
+        legend.position = c(-0.1,1.05)) +
+  geom_text(data = sigstar, inherit.aes = FALSE,
+            aes(x = 1.5, y = 175, label = label), size = 8) 
+
+
+coral_comp <- ggplot(figure_coral_comp, aes(x = species, y = as.numeric(value), fill = site)) +
+  geom_col(stat = "identity", position = "dodge") +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, color = "black"),
+        axis.text.y = element_text(color = "black"),
+        plot.margin= margin(b = 1.5),
+        legend.position = "none") +
+  labs(x = "", y = "Percent of colonies")
+
+```
+
+
+# combined Site Characterization 
+```{r}
+plot_grid(temp_time_overlap, density_plot, coral_comp, sizeplot, align = c("hv"), axis = c("tblr"), labels = c('a', 'b', 'c', 'd'), label_size = 12)
+
+ggsave(filename = "figures/Fig3.png", width = 174, height = 195, units = "mm")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #Percent coverage of Benthic Communities
 ```{r}
