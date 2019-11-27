@@ -17,7 +17,8 @@ library(ggmap)  # devtools::install_github("dkahle/ggmap")
 ```
 
 # Map of Mermaid Reef and Sandy Cay Reef
-```{r}
+```{r, eval = FALSE}
+# Map figure (Figures/map.png) generated in October 2019 -- current Google Imagery may be different
 register_google(key = readLines("google_api_key"))
 
 mermaid <- c(lon = -77.05280, lat = 26.55358)
@@ -49,7 +50,7 @@ gm_abaco <- ggmap(map_abaco, extent = "device") +
   annotate("segment", x = -77.048, xend = -76.94, y = 26.550, yend = 26.475, colour = "white") +
   annotate("segment", x = -76.984, xend = -76.94, y = 26.403, yend = 26.465, colour = "white") +
   annotate("segment", x = -76.984, xend = -76.94, y = 26.395, yend = 26.275, colour = "white") +    
-  inset(ggplotGrob(gm_bah), xmin = -77.4, xmax = -77.1, ymin = 26.3, ymax = 26.45) +
+  ggmap::inset(ggplotGrob(gm_bah), xmin = -77.4, xmax = -77.1, ymin = 26.3, ymax = 26.45) +
   theme(axis.line = element_blank())
 
 gm_mermaid <- ggmap(map_mermaid, extent = "device") +
@@ -70,6 +71,7 @@ mapfig <- plot_grid(gm_abaco, zooms, ncol = 2, rel_widths = c(0.6, 0.4),
 ggsave(filename = "Figures/map.png", plot = mapfig,
        width = 174, height = 102, units = "mm")
 ```
+![](../Figures/map.png)
 
 
 # Temperature Data # 
