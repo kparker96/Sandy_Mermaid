@@ -449,6 +449,38 @@ plot_grid(temp_time_overlap, density_plot, coral_comp, sizeplot, align = c("hv")
 ggsave(filename = "figures/Fig3.png", width = 174, height = 195, units = "mm")
 ```
 
+```{r}
+MR_SC_Light <- readxl::read_xlsx("Data/Environmental_Data/MR_SC_light_data.xlsx")
+  
+
+light_int <- MR_SC_Light %>% 
+  mutate(site = case_when(grepl("SC", recording) ~ "Sandy Cay Reef", grepl("MR", recording) ~ "Mermaid Reef")) %>%
+  select(date_time, light_int, site)
+
+ggplot(light_int, aes(x = date_time, y = light_int, color = site)) +
+  geom_line(alpha = 0.6, size = 0.5) +
+  theme_classic() + 
+  theme(legend.title = element_blank(),
+        legend.direction = "horizontal",
+        legend.position = c(0.5, -0.09),
+        legend.spacing.x = unit(1.0, 'mm'),
+        panel.grid = element_line(color = "white"),
+        axis.title.x = element_text(color = "transparent", size = 0.1),
+        axis.text.x = element_text(color = "black", size = 6),
+        axis.title.y = element_text(size = 8),
+        axis.text.y = element_text(color = "black", size = 6),
+        legend.text = element_text(size = 6),
+        legend.background = element_rect(fill="transparent")) +
+        ylab("Light Intensity (lum/ft²)") +
+        scale_y_continuous(expand = c(0, 0))
+
+
+ggsave(filename = "figures/light_int.png", width = 84, height = 84, units = "mm")
+
+
+
+```
+
 
 
 
