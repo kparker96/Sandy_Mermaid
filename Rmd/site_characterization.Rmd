@@ -16,7 +16,7 @@ library(grid)
 library(ggmap)  # devtools::install_github("dkahle/ggmap")
 ```
 
-# Map of Mermaid Reef and Sandy Cay Reef
+# Figure 1. Location of sampling sites off Great Abaco, The Bahamas.
 ```{r, eval = FALSE}
 # Map figure (Figures/map.png) generated in October 2019 -- current Google Imagery may be different
 register_google(key = readLines("google_api_key"))
@@ -72,9 +72,7 @@ ggsave(filename = "Figures/Fig1.png", plot = mapfig,
        width = 174, height = 102, units = "mm")
 ```
 ![](../Figures/map.png)
-
-
-# Temperature Data # 
+# Temperature Data #
 
 # Import Temperature Data
 
@@ -89,16 +87,6 @@ mermaid1 <- read_csv("Data/Temperature/Mermaid's_Reef_download1.csv", skip = 2) 
 range(mermaid1$time)
 ```
 
-```{r}
-# August 2018 - January 2019
-mermaid2 <- read_csv("Data/Temperature/Mermaid_Reef_8-2018_0.csv", skip = 2) %>%
-  clean_names() %>%
-  mutate(time = mdy_hms(date_time_gmt_04_00),
-         site = "mermaid_reef") %>%
-  select(time, site, temp_c) %>%
-  slice(1:(n()-20))    # get rid of some wonky data at the end
-range(mermaid2$time)
-```
 
 # Sandy Cay Reef
 ```{r}
@@ -111,9 +99,8 @@ sandy0 <- read_csv("Data/Temperature/Sandy_Cay_Reef_-_Backreef#8_0.csv", skip = 
   select(time, site, temp_c) %>%
   slice(100:n())   # get rid of some wonky data at the beginning
 range(sandy0$time)
-```
 
-```{r}
+
 # October 2015 - August 2016
 sandy1 <- read_csv("Data/Temperature/SANDY_Cay_Nursery.csv", skip = 2) %>%
   clean_names() %>%
@@ -124,102 +111,32 @@ sandy1 <- read_csv("Data/Temperature/SANDY_Cay_Nursery.csv", skip = 2) %>%
 range(sandy1$time)
 ```
 
-```{r}
-# November 2017 - July 2018
-sandy2 <- read_csv("Data/Temperature/Sandy_Cay_Reef_2.csv", skip = 2) %>%
-  clean_names() %>%
-  mutate(time = mdy_hms(date_time_gmt_05_00),
-         site = "sandy_cay_reef") %>%
-  select(time, site, temp_c) %>%
-  slice(1:(n()-120))    # get rid of some wonky data at the end
-range(sandy2$time)
-```
 
-# Merge datasets
+# Merge temperature datasets for overlapping time period 
 ```{r}
-df <- bind_rows(mermaid1, mermaid2, sandy0, sandy1, sandy2) %>%
+df <- bind_rows(mermaid1, sandy0, sandy1) %>%
   mutate(monthday = format(time, format = "%m-%d"))
-```
 
-
-# Overlapping Raw Temperature Data from Mermaid Reef and Sandy Cay Reef
-```{r}
 # Temperature data from overlapping time period
 temp_overlap <- df %>%
   filter(time < "2015-10-15") %>%
   filter(site != "sandy_cay_nursery")
 
-temp_time_overlap <- ggplot(temp_overlap, aes(x = time, y = temp_c, color = site)) +
-  geom_line(alpha = 0.7, size = 1.2) +
-  theme_bw() + 
-  theme(panel.grid = element_line(color = "white"),
-        axis.title.x = element_text(color = "transparent"),
-        axis.text.x = element_text(color = "black"),
-        axis.text.y = element_text(color = "black"),
-        legend.position = "none") +
-  xlab(label = "Month") +
-  ylab(expression("Temperature " ( degree*C))) +
-  scale_color_manual(name = "Site", labels = c("Mermaid Reef", "Sandy Cay"), values = c("#F8766D","#00BFC4"))
-
-```
-
-
-# Mermaid Reef vs Sandy Cay Reef t test for temperature data 
-```{r}
-t.test(temp_c ~ site, data = temp_overlap, paired = FALSE)
-```
-
-
-#Distribution of Recorded Temperature from Mermaid Reef and Sandy Cay Reef
-```{r}
 # List Temperature Recordings only during overlapping time period
-temp_dat <- df %>%
-  filter(time < "2015-10-15") %>%
-  filter(site != "sandy_cay_nursery") %>%
+temp_dat <- temp_overlap %>%
   select(site, temp_c) %>%
   mutate(site = factor(site, levels = c("sandy_cay_reef", "mermaid_reef")))
-
-density_plot <- ggplot(temp_dat, aes(x = temp_c, fill = site)) +
-  geom_density(alpha = 0.6, position = "identity") +
-  theme_bw() +
-  coord_flip() +
-  theme(panel.grid = (element_line(color = "transparent")),
-    axis.text.y = element_text(color = "black"),
-        axis.text.x = element_text(color = "black"),
-        axis.title.y = element_text(color = "transparent"),
-    legend.position = "none") +
-  xlab(expression("Temperature " (degree*C))) +
-  ylab(label = "Frequency") +
-  guides(colour = guide_legend(nrow = 1)) +
-  scale_y_continuous(expand = c(0,0))  +
-  scale_fill_manual(name="",
-                         breaks=c("mermaid_reef", "sandy_cay_reef"),
-                         labels=c("Mermaid Reef", "Sandy Cay Reef"), values=c( "#00BFC4", "#F8766D"))
 ```
 
 
-# Arranging Raaw Temperature Data and Distribution Figures together
+#Temperature data t test and metrics for Mermaid Reef and Sandy Cay Reef 
 ```{r}
-library(ggpubr) #instal.packages("ggpubr")
-
-# Combined temperature and density figure 
-ggarrange(temp_time_overlap, density_plot,
-                    labels = c("    a", "   b"), font.label = list(size = 21)) +
-  theme(plot.margin=unit(c(1,1,3,0.5),"cm"), legend.position = "bottom")
-
-ggsave(filename = "figures/temp_dens.png", width = 350, height = 175, units = "mm")
-
-```
-
-#Table of Metric Values for Temperature Data
-```{r}
-# Mean of all Temp Data
-library(gridExtra)
-library(grid)
+# Mermaid Reef vs Sandy Cay Reef t test
+t.test(temp_c ~ site, data = temp_overlap, paired = FALSE)
 
 mean(df$temp_c, na.rm = TRUE)
 
-metrics<- df %>%
+temp_metrics<- df %>%
   filter(time < "2015-10-15") %>%
   filter(site != "sandy_cay_nursery") %>%
   group_by(site) %>%
@@ -237,51 +154,35 @@ metrics<- df %>%
 
 
 
-# Import Environmental AGRRA Data
+# Import Coral Composition AGRRA Data
 ```{r}
-#Benthic Organism Cover Data
-NB_benthic_point_cover <- read_csv("Data/Environmental_Data/benthic_point_cover.csv") %>%
-  clean_names() 
-
-benthic_cover <- NB_benthic_point_cover %>%
-  select(batch, code, site, date, latitude, longitude, zone, subregion, shelf, ecoregion, depth, nt, 
-         live.coral = l_cavg, lc.std = l_cstd, newly.dead.coral = nd_cavg, ndc.std = nd_cstd, 
-         algae.crustose = cc_aavg, ac.std = cc_astd, newly.dead.algae.crustose = ndcc_aavg, ndacc.std = ndcc_astd, 
-         other.calcifiers = o_cavg, oc.std = o_cstd, turf.algae = t_aavg, 
-         ta.std = t_astd, turf.algae.sediment = ta_savg, tas.std = ta_sstd, macro.algae.mixed = m_aavg, mam.std 
-         =m_astd, macro.algae.calc = cm_aavg, mac.std = cm_astd, macro.algae.fleshy = fm_aavg, 
-         maf.std = fm_astd, cyanobacteria = cya_navg, cyan.std = cya_nstd, biofilm = fil_mavg, film.std = fil_mstd, 
-         aggressive.inverts = ain_vavg, ai.std = ain_vstd, other.inverts = oin_vavg, 
-         oi.std = oin_vstd, algae.peyssonnelid =pey_savg, ap.std = pey_sstd, other = oavg, os.std = ostd)
-
-# Coral Composition by Genus
-NB_coral_composition_genus <- read_csv("Data/Environmental_Data/coral_composition_genus.csv") %>%
-  clean_names() 
-
-# Rename coral Genus abbreviations to full name 
-coral_composition_genus <- NB_coral_composition_genus %>%
-  rename(acropora = acro, agaricia = agar, colpophyllia = colp, diploria = dipl, meandrina = mean, millepora = mill,
-         montastraea = mont, orbicella = orbi, porites = pori, pseudodiploria = pseu, siderastrea = side, 
-         stepanocoenia = step)
-
 # Coral Composition by Species
 NB_coral_composition_species <- read_csv("Data/Environmental_Data/coral_composition_species.csv") %>%
   clean_names() 
-# Rename coral species abbreviations to full name 
-coral_composition_species <- NB_coral_composition_species %>%
-  rename(a.cervicornis = acer, a.palmata = apal, a.agaricites = aaga, a.tenuifolia = aten, agaricia.sp = agar, 
-         c.natans = cnat, d.labrynthiformis = dlab, m.alcicornis = malc, m.complanata = mcom, 
-         m.meandrites = mmea, m.cavernosa =mcav, o.annularis = oann, o.faveolata = ofav, o.franski = ofra, 
-         p.asteroides = past, p.furcata = pfur, p.porites = ppor, p.clivosa = pcli, p.strigosa = pstr,
-         s.siderea = ssid, s.intersepta = sint)
 
-# Coral Size
-coral_size <- readxl::read_xlsx("Data/Environmental_Data/coral_size.xlsx")
+# Percent of Coral Species 
+figure_coral_comp <- NB_coral_composition_species %>%
+  select(site, matches("percent")) %>%
+  replace(is.na(.), 0) %>%
+  filter(site %in% c("Mermaid Reef", "Sandy Cay Reef - Fore reef")) %>%
+  mutate(site = recode(site, "Sandy Cay Reef - Fore reef" = "Sandy Cay Reef")) %>%
+  gather(key = "species", value = "value", -site) %>%
+  group_by(species) %>%
+  filter(value > 0) %>%
+  ungroup() %>%
+  mutate(species = toupper(gsub("percent_", "", species))) %>%
+  complete(site, species)
+
 ```
 
-# Coral size t-tests
+# Import Coral Size AGRRA Data 
 ```{r}
 library(BSDA)   #install.packages("BSDA")
+
+# Coral Size 
+coral_size <- readxl::read_xlsx("Data/Environmental_Data/coral_size.xlsx")
+
+# Coral Size t tests 
 
 # Difference in diameter
 tsum.test(mean.x = filter(coral_size, site == "Mermaid Reef", metric == "diameter")$mean,
@@ -311,73 +212,10 @@ tsum.test(mean.x = filter(coral_size, site == "Mermaid Reef", metric == "width")
           var.equal = FALSE)
 ```
 
-#Coral Size Plot
+
+# Figure 3: Temperature and coral composition of Mermaid Reef (pink) and Sandy Cay Reef (blue).
 ```{r}
-coral_size
-
-ggplot(coral_size, aes(x = metric, y = mean)) +
-  geom_errorbar(aes(ymin = mean - stdev, ymax = mean + stdev), lwd = 0.25, width = 0.5) +
-  geom_point(aes(shape = metric, color = metric), size = 5) +
-  facet_wrap(~site) +
-  ylab("Average (cm)") +
-  xlab("") +
-  ylim(0, 210)
-
-sigstar <- tibble(
-  metric = unique(coral_size$metric),
-   label = c("*", "", "")
-)
-
-sizeplot <- ggplot(coral_size, aes(x = site, y = mean)) +
-  geom_errorbar(aes(ymin = mean - stdev, ymax = mean + stdev), lwd = 0.25, width = 0.5) +
-  geom_point(aes(color = site), size = 5, pch = 15) +
-  facet_wrap(~metric, strip.position = "bottom") +
-  ylab("Average (cm)") +
-  xlab("") +
-  theme_classic() +
-  scale_y_continuous(limits = c(0, 220), expand = c(0, 0)) +
-  theme(axis.text.x = element_blank(),
-        axis.line.x = element_blank(),
-        axis.ticks.x = element_blank(),
-        plot.margin= margin(b = 1.7),
-        legend.title = element_blank(),
-        legend.spacing.x = unit(0.5, 'cm'),
-        legend.direction = "horizontal",
-        legend.position = c(0,-0.2)) +
-  geom_text(data = sigstar, inherit.aes = FALSE,
-            aes(x = 1.5, y = 175, label = label), size = 8) 
-
-sizeplot
-```
-
-# Percent of Coral species
-```{r}
-figure_coral_comp <- NB_coral_composition_species %>%
-  select(site, matches("percent")) %>%
-  replace(is.na(.), 0) %>%
-  filter(site %in% c("Mermaid Reef", "Sandy Cay Reef - Fore reef")) %>%
-  mutate(site = recode(site, "Sandy Cay Reef - Fore reef" = "Sandy Cay Reef")) %>%
-  gather(key = "species", value = "value", -site) %>%
-  group_by(species) %>%
-  filter(value > 0) %>%
-  ungroup() %>%
-  mutate(species = toupper(gsub("percent_", "", species))) %>%
-  complete(site, species)
-
-coral_comp <- ggplot(figure_coral_comp, aes(x = species, y = as.numeric(value), fill = site)) +
-  geom_col(stat = "identity", position = "dodge") +
-  theme_classic() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1),
-        plot.margin= margin(b = 1.5),
-        legend.position = "none") +
-  labs(x = "", y = "Percent of colonies")
-
-```
-
-
-# combined Site Characterization Figures
-```{r}
-
+# a) Temperature data from May to October 2015 recorded by HOBO pendants.
 temp_time_overlap <- ggplot(temp_overlap, aes(x = time, y = temp_c, color = site)) +
   geom_line(alpha = 0.7, size = 1.2) +
   theme_classic() + 
@@ -390,7 +228,7 @@ temp_time_overlap <- ggplot(temp_overlap, aes(x = time, y = temp_c, color = site
   scale_color_manual(name = "Site", labels = c("Mermaid Reef", "Sandy Cay"), values = c("#F8766D","#00BFC4"))
 
 
-
+# b) Distribution of temperature values between both sites.
 density_plot <- ggplot(temp_dat, aes(x = temp_c, fill = site)) +
   geom_density(alpha = 0.6, position = "identity") +
   theme_classic() +
@@ -408,6 +246,22 @@ density_plot <- ggplot(temp_dat, aes(x = temp_c, fill = site)) +
                          breaks=c("mermaid_reef", "sandy_cay_reef"),
                          labels=c("Mermaid Reef", "Sandy Cay Reef"), values=c( "#00BFC4", "#F8766D"))
 
+# c) Composition of coral species of each reef
+coral_comp <- ggplot(figure_coral_comp, aes(x = species, y = as.numeric(value), fill = site)) +
+  geom_col(stat = "identity", position = "dodge") +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, color = "black"),
+        axis.text.y = element_text(color = "black"),
+        plot.margin= margin(b = 1.5),
+        legend.position = "none") +
+  labs(x = "", y = "Percent of colonies")
+
+
+
+# d) Average diameter, height, and width of O. faveolata colonies surveyed at each site.
+sigstar <- tibble(
+  metric = unique(coral_size$metric),
+   label = c("*", "", ""))
 
 sizeplot <- ggplot(coral_size, aes(x = site, y = mean)) +
   geom_errorbar(aes(ymin = mean - stdev, ymax = mean + stdev), lwd = 0.25, width = 0.5) +
@@ -430,33 +284,25 @@ sizeplot <- ggplot(coral_size, aes(x = site, y = mean)) +
             aes(x = 1.5, y = 175, label = label), size = 8) 
 
 
-coral_comp <- ggplot(figure_coral_comp, aes(x = species, y = as.numeric(value), fill = site)) +
-  geom_col(stat = "identity", position = "dodge") +
-  theme_classic() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, color = "black"),
-        axis.text.y = element_text(color = "black"),
-        plot.margin= margin(b = 1.5),
-        legend.position = "none") +
-  labs(x = "", y = "Percent of colonies")
 
-```
-
-
-# combined Site Characterization 
-```{r}
+# combined Site Characterization (Figure 3)
 plot_grid(temp_time_overlap, density_plot, coral_comp, sizeplot, align = c("hv"), axis = c("tblr"), labels = c('a', 'b', 'c', 'd'), label_size = 12)
 
 ggsave(filename = "figures/Fig3.png", width = 174, height = 195, units = "mm")
 ```
 
+
+# Light Data #
+
+# Import Light Intensity Data 
 ```{r}
 MR_SC_Light <- readxl::read_xlsx("Data/Environmental_Data/MR_SC_light_data.xlsx")
   
-
 light_int <- MR_SC_Light %>% 
   mutate(site = case_when(grepl("SC", recording) ~ "Sandy Cay Reef", grepl("MR", recording) ~ "Mermaid Reef")) %>%
   select(date_time, light_int, site)
 
+# Figure S1: Recorded light intensity at Mermaid Reef (red) and Sandy Cay Reef (blue) from 08 to 14 May 2015.  
 ggplot(light_int, aes(x = date_time, y = light_int, color = site)) +
   geom_line(alpha = 0.6, size = 0.5) +
   theme_classic() + 
@@ -481,29 +327,3 @@ ggsave(filename = "figures/light_int.png", width = 84, height = 84, units = "mm"
 
 ```
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#Percent coverage of Benthic Communities
-```{r}
-benthic_data <- benthic_cover %>%
-  filter(site == "Mermaid Reef" | site == "Sandy Cay Reef - Fore reef") %>%
-  select(site, live.coral, lc.std, newly.dead.coral, ndc.std, algae.crustose, ac.std, newly.dead.algae.crustose,
-         ndacc.std, other.calcifiers, oc.std, turf.algae, ta.std, turf.algae.sediment, tas.std, macro.algae.mixed,
-         mam.std, macro.algae.calc, mac.std, macro.algae.fleshy, maf.std, cyanobacteria, cyan.std, biofilm,
-         film.std, aggressive.inverts, ai.std, other.inverts, oi.std, algae.peyssonnelid, ap.std, other, os.std)
-  
-```

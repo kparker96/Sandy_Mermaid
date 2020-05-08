@@ -123,8 +123,19 @@ sample_collect <- sample_data %>%
 # Each sample name and associated depth 
 depth <- sample_collect %>%
   select(Sample.Name, depth)
-  
+
+#Table of Site Depth Metrics
+metrics <- sample_collect %>%
+  group_by(site) %>%
+  summarize(
+    mean = mean(depth, na.rm = TRUE),
+    min = min(depth, na.rm = TRUE),
+    max = max(depth, na.rm = TRUE),
+    median = median(depth, na.rm = TRUE))
 ```
+
+  
+
 
 
 #Figure 4. Host genotype diversity and Symbiodiniaceae composition of colonies from Mermaid Reef and Sandy Cay. 
@@ -258,17 +269,6 @@ ggsave(filename = "figures/Fig5.png", width = 84, height = 84, units = "mm")
 
 ```
 
-# Depth Between Sites
-```{r}
-#Table of Site Depth Metrics
-metrics <- depth_dom_sym %>%
-  group_by(site) %>%
-  summarize(
-    mean = mean(depth, na.rm = TRUE),
-    min = min(depth, na.rm = TRUE),
-    max = max(depth, na.rm = TRUE),
-    median = median(depth, na.rm = TRUE))
-```
 
 
 # Figure 6. Network analysis of Symbiodiniaceae composition of Orbicella faveolata from a)Mermaid Reef and b)Sandy Cay Reef
