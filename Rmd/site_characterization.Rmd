@@ -14,6 +14,7 @@ library(lubridate)
 library(cowplot)
 library(grid)
 library(ggmap)  # devtools::install_github("dkahle/ggmap")
+library(BSDA)   #install.packages("BSDA")
 ```
 
 # Figure 1. Location of sampling sites off Great Abaco, The Bahamas.
@@ -131,12 +132,7 @@ temp_dat <- temp_overlap %>%
 
 #Temperature data t test and metrics for Mermaid Reef and Sandy Cay Reef 
 ```{r}
-# Mermaid Reef vs Sandy Cay Reef t test
-t.test(temp_c ~ site, data = temp_overlap, paired = FALSE)
-
-mean(df$temp_c, na.rm = TRUE)
-
-temp_metrics<- df %>%
+temp_metrics <- df %>%
   filter(time < "2015-10-15") %>%
   filter(site != "sandy_cay_nursery") %>%
   group_by(site) %>%
@@ -145,14 +141,14 @@ temp_metrics<- df %>%
     min = min(temp_c, na.rm = TRUE),
     max = max(temp_c, na.rm = TRUE),
     median = median(temp_c, na.rm = TRUE))
+
+temp_metrics
+
+# Mermaid Reef vs Sandy Cay Reef t test
+t.test(temp_c ~ site, data = temp_overlap, paired = FALSE)
 ```
 
-
-
-
 # AGRRA Data #
-
-
 
 # Import Coral Composition AGRRA Data
 ```{r}
@@ -162,10 +158,10 @@ NB_coral_composition_species <- read_csv("Data/Environmental_Data/coral_composit
 
 # Percent of Coral Species 
 figure_coral_comp <- NB_coral_composition_species %>%
-  select(site, matches("percent")) %>%
-  replace(is.na(.), 0) %>%
   filter(site %in% c("Mermaid Reef", "Sandy Cay Reef - Fore reef")) %>%
   mutate(site = recode(site, "Sandy Cay Reef - Fore reef" = "Sandy Cay Reef")) %>%
+  select(site, matches("percent")) %>%
+  replace(is.na(.), 0) %>%
   gather(key = "species", value = "value", -site) %>%
   group_by(species) %>%
   filter(value > 0) %>%
@@ -177,8 +173,6 @@ figure_coral_comp <- NB_coral_composition_species %>%
 
 # Import Coral Size AGRRA Data 
 ```{r}
-library(BSDA)   #install.packages("BSDA")
-
 # Coral Size 
 coral_size <- readxl::read_xlsx("Data/Environmental_Data/coral_size.xlsx")
 
