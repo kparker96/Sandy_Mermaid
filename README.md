@@ -1,7 +1,7 @@
 This repository includes data and analysis to accompany the manuscript:
 
 
-# Characterization of a thermally tolerant Orbicella faveolata reef in Abaco, The Bahamas
+# Characterization of a thermally tolerant *Orbicella faveolata* reef in Abaco, The Bahamas
 
 **Authors:** Katherine E Parker, Jeremy Ward, Erin Eggleston, Evan Fedorov, John Everett Parkinson, Craig P Dahlgreen, Ross Cunning  
 **Journal:** *Coral Reefs*  
