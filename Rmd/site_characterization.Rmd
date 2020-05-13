@@ -1,5 +1,5 @@
 ---
-title: "environment_data"
+title: "Site characterization"
 output: html_document
 editor_options: 
   chunk_output_type: console
@@ -80,7 +80,7 @@ ggsave(filename = "Figures/Fig1.png", plot = mapfig,
 # Mermaid Reef
 ```{r}
 # May - October 2015
-mermaid1 <- read_csv("Data/Temperature/Mermaid's_Reef_download1.csv", skip = 2) %>%
+mermaid1 <- read_csv("Data/site_data/mermaid_hobo.csv", skip = 2) %>%
   clean_names() %>%
   mutate(time = mdy_hms(date_time_gmt_04_00),
          site = "mermaid_reef") %>%
@@ -92,7 +92,7 @@ range(mermaid1$time)
 # Sandy Cay Reef
 ```{r}
 # May 2015 - October 2015
-sandy0 <- read_csv("Data/Temperature/Sandy_Cay_Reef_-_Backreef#8_0.csv", skip = 2) %>%
+sandy0 <- read_csv("Data/site_data/sandy_cay_hobo.csv", skip = 2) %>%
   clean_names() %>%
   mutate(time = mdy_hms(date_time_gmt_04_00),
          site = "sandy_cay_reef",
@@ -141,7 +141,7 @@ t.test(temp_c ~ site, data = temp_overlap, paired = FALSE)
 # Import Coral Composition AGRRA Data
 ```{r}
 # Coral Composition by Species
-NB_coral_composition_species <- read_csv("Data/Environmental_Data/coral_composition_species.csv") %>%
+NB_coral_composition_species <- read_csv("Data/site_data/coral_composition_species.csv") %>%
   clean_names() 
 
 # Percent of Coral Species 
@@ -162,7 +162,7 @@ figure_coral_comp <- NB_coral_composition_species %>%
 # Import Coral Size AGRRA Data 
 ```{r}
 # Coral Size 
-coral_size <- readxl::read_xlsx("Data/Environmental_Data/coral_size.xlsx")
+coral_size <- readxl::read_xlsx("Data/site_data/coral_size.xlsx")
 
 # Coral Size t tests 
 
@@ -278,7 +278,7 @@ ggsave(filename = "figures/Fig3.png", width = 174, height = 195, units = "mm")
 
 # Import Light Intensity Data 
 ```{r}
-MR_SC_Light <- readxl::read_xlsx("Data/Environmental_Data/MR_SC_light_data.xlsx")
+MR_SC_Light <- readxl::read_xlsx("Data/site_data/MR_SC_light_data.xlsx")
   
 light_int <- MR_SC_Light %>% 
   mutate(site = case_when(grepl("SC", recording) ~ "Sandy Cay Reef", grepl("MR", recording) ~ "Mermaid Reef")) %>%
