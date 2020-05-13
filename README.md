@@ -8,7 +8,7 @@ This repository includes data and analysis to accompany the manuscript:
 
 ---
 
-This work analyses the abiotic and biotic factors contributing to higher thermal tolerance documented at Mermaid Reef in comparison to the neighboring less heat tolerant Sandy Cay Reef in Abaco, Bahamas. Temperature, depth, light intensity, and coral composition were analyzed, as well as host genotype diversity, Symbiodiniaceae composition, and bacterial communities in *O. faveolata* colonies at each site. This repository contains all analyses of environmental variables and Symbiodiniaceae composition. Microbiome data and code is available at [github.com/eme47/CoralMicrobiome](github.com/eme47/CoralMicrobiome).
+This work analyses the abiotic and biotic factors contributing to higher thermal tolerance documented at Mermaid Reef in comparison to the neighboring less heat tolerant Sandy Cay Reef in Abaco, Bahamas. Temperature, depth, light intensity, and coral composition were analyzed, as well as host genotype diversity, Symbiodiniaceae composition, and bacterial communities in *O. faveolata* colonies at each site. This repository contains all analyses of environmental variables and Symbiodiniaceae composition. Microbiome data and code is available at [https://github.com/eme47/CoralMicrobiome](https://github.com/eme47/CoralMicrobiome).
 
 ---
 **Repository contents:**  
