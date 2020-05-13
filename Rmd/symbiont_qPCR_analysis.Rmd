@@ -113,7 +113,7 @@ setdiff(qpcr$Sample.Name, qpcr_good$Sample.Name)
 #library(readr)
 
 #Importing field sample collection data 
-sample_data <- readxl::read_xlsx("Data/Temperature/sample_data.xlsx")
+sample_data <- readxl::read_xlsx("Data/sample_data.xlsx")
 
 sample_collect <- sample_data %>%
   select(Sample.Name = tube_label, depth = colony_depth_m, site)
