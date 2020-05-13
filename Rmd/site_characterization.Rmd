@@ -100,28 +100,17 @@ sandy0 <- read_csv("Data/Temperature/Sandy_Cay_Reef_-_Backreef#8_0.csv", skip = 
   select(time, site, temp_c) %>%
   slice(100:n())   # get rid of some wonky data at the beginning
 range(sandy0$time)
-
-
-# October 2015 - August 2016
-sandy1 <- read_csv("Data/Temperature/SANDY_Cay_Nursery.csv", skip = 2) %>%
-  clean_names() %>%
-  mutate(time = mdy_hms(date_time_gmt_04_00),
-         site = "sandy_cay_nursery") %>%
-  select(time, site, temp_c) %>%
-  slice(100:n())   # get rid of some wonky data at the beginning
-range(sandy1$time)
 ```
 
 
 # Merge temperature datasets for overlapping time period 
 ```{r}
-df <- bind_rows(mermaid1, sandy0, sandy1) %>%
+df <- bind_rows(mermaid1, sandy0) %>%
   mutate(monthday = format(time, format = "%m-%d"))
 
 # Temperature data from overlapping time period
 temp_overlap <- df %>%
-  filter(time < "2015-10-15") %>%
-  filter(site != "sandy_cay_nursery")
+  filter(time < "2015-10-15")
 
 # List Temperature Recordings only during overlapping time period
 temp_dat <- temp_overlap %>%
@@ -134,7 +123,6 @@ temp_dat <- temp_overlap %>%
 ```{r}
 temp_metrics <- df %>%
   filter(time < "2015-10-15") %>%
-  filter(site != "sandy_cay_nursery") %>%
   group_by(site) %>%
   summarize(
     mean = mean(temp_c, na.rm = TRUE),
