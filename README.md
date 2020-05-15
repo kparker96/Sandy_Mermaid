@@ -2,29 +2,37 @@
 
 This repository includes data and analysis to accompany the manuscript:
 
-
 # Characterization of a thermally tolerant *Orbicella faveolata* reef in Abaco, The Bahamas
 
-**Authors:** Katherine E Parker, Jeremy Ward, Erin Eggleston, Evan Fedorov, John Everett Parkinson, Craig P Dahlgreen, Ross Cunning  
+**Authors:** Katherine E Parker, Jeremy O Ward, Erin M Eggleston, Evan Fedorov, John Everett Parkinson, Craig P Dahlgren, Ross Cunning  
 **Journal:** *Coral Reefs*  
-**Link:**
+**Link:** https://doi.org/10.1007/s00338-020-01948-0
 
 ---
-This work analyses the abiotic and biotic factors contributing to higher thermal tolerance documented at Mermaid Reef in comparison to the neighboring less heat tolerant Sandy Cay Reef. Temperature, depth, light intensity, and coral composition were analyzed, as well as microsatellite genotyping, quantitative PCR, and 16S rRNA metabarcoding to examine host genotype diversity, Symbiodiniaceae composition, and bacterial communities in *O. faveolata* colonies at each site. This repository contains all analyses of environmental characterization and Symbiodiniaceae composition from qPCR data conducted as part of this work. It can be accessed at [github.com/kparker96/Sandy_Mermaid](https://github.com/kparker96/Sandy_Mermaid).
+
+This work analyses the abiotic and biotic factors contributing to higher thermal tolerance documented at Mermaid Reef in comparison to the neighboring less heat tolerant Sandy Cay Reef in Abaco, Bahamas. Temperature, depth, light intensity, and coral composition were analyzed, as well as host genotype diversity, Symbiodiniaceae composition, and bacterial communities in *O. faveolata* colonies at each site. This repository contains all analyses of environmental variables and Symbiodiniaceae composition. Microbiome data and code is available at [https://github.com/eme47/CoralMicrobiome](https://github.com/eme47/CoralMicrobiome).
 
 ---
 **Repository contents:**  
   
 **Data:**  
+
+* **Data/sample_data.xlsx:** Metadata for coral samples, including site and depth
+
+* **Data/qPCR/:** Raw qPCR data for Symbiodiniaceae quantification
+
+* **Data/site_data/:** Coral reef benthic community composition and colony size from AGRRA surveys at both sites
+
+    + **coral_composition_species.csv:** Coral reef benthic community composition from AGRRA surveys  
+    + **coral_size.xlsx:** Summary statistics of *O. faveolata* colony sizes from AGRRA surveys
+    + **mermaid_hobo.csv:** Temperature data from HOBO logger at Mermaid Reef
+    + **sandy_cay_hobo.csv:** Temperature data from HOBO logger at Sandy Cay Reef
+    + **MR_SC_light_data.xlsx:** Light data from HOBO loggers at both sites  
+    
   
-* **Data/Temperature/:** Recorded temperature from both sites
-
-* **Data/Environmental_Data/:** Coral reef benthic community composition and colony size for both sites
-*  **Data/qPCR/:** raw qPCR reactions targetting Symbiodiniaceae  
-
 **Rmd:** 
 
 * **Rmd/site_chacterization.Rmd:** Code to import and analyze temperature, light intensity, benthic community composition, and colony size for both sites 
 
-* **Rmd/tidy_cpce_data.Rmd:** Code to import qPCR data and analyze Symbiodiniaceae composition 
+* **Rmd/symbiont_qPCR_analysis.Rmd:** Code to import qPCR data and analyze Symbiodiniaceae composition 
 
