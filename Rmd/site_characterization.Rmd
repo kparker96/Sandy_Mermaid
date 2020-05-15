@@ -158,7 +158,6 @@ NB_coral_composition_species <- read_csv("Data/Environmental_Data/coral_composit
 
 # Percent of Coral Species 
 figure_coral_comp <- NB_coral_composition_species %>%
-  filter(site %in% c("Mermaid Reef", "Sandy Cay Reef - Fore reef")) %>%
   mutate(site = recode(site, "Sandy Cay Reef - Fore reef" = "Sandy Cay Reef")) %>%
   select(site, matches("percent")) %>%
   replace(is.na(.), 0) %>%

@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3827500.svg)](https://doi.org/10.5281/zenodo.3827500)
+
 This repository includes data and analysis to accompany the manuscript:
 
 
