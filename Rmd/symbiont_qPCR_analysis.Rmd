@@ -130,6 +130,15 @@ metrics <- sample_collect %>%
     min = min(depth, na.rm = TRUE),
     max = max(depth, na.rm = TRUE),
     median = median(depth, na.rm = TRUE))
+
+
+out <- qpcr_good %>%
+  mutate(tube_label = Sample.Name) %>%
+  full_join(sample_data) %>%
+  select(sample_id = tube_label, site, genus, species, colony_tag, colony_depth_m, date_sampled, A.CT.mean, B.CT.mean, C.CT.mean, D.CT.mean, Orb.CT.mean,
+         A.CT.sd, B.CT.sd, C.CT.sd, D.CT.sd, Orb.CT.sd, A.Orb, B.Orb, C.Orb, D.Orb)
+
+write_csv(out, path = "BCO-DMO/qPCR_data.csv")
 ```
 
   
